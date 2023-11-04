@@ -1,9 +1,15 @@
-import React from 'react'
+import React from 'react';
 
-function Profile() {
+const Profile = () => {
   return (
-    <div>Profile</div>
-  )
-}
+    <div>
+      <h2>Profile</h2>
+      <div>
+        <p>Email: user@example.com</p>
+        <p>Name: John Doe</p>
+      </div>
+    </div>
+  );
+};
 
-export default Profile
+export default Profile;
