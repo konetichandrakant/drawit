@@ -19,4 +19,4 @@ const jwtTokenVerification = async (req, res, next) => {
     }
 }
 
-export default jwtTokenVerification;
+module.exports = {jwtTokenVerification};

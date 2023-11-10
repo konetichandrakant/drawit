@@ -1,27 +1,24 @@
 import React from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
-import Header from './components/Header';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
+import Game from './components/Game';
 import './App.css';
 
 const App = () => {
   return (
     <Router>
-      <div>
-        <Header />
-        <Route path="/" exact component={Home} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/profile" component={Profile} />
-      </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/game/:id" element={<Game />} />
+      </Routes>
     </Router>
   );
-};
-
-const Home = () => {
-  return <div>Welcome to the Home Page</div>;
 };
 
 export default App;

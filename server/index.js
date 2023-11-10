@@ -1,11 +1,12 @@
 const express = require('express');
 const app = express();
-const tokenVerification = require('./jwtTokenVerification');
+const { jwtTokenVerification } = require('./jwtTokenVerification');
 
 const User = require('./models/User');
-const game = require('./game');
 
 app.use(express.json());
+// app.use('/game', require('./game'));
+
 
 app.post('/login', (req, res) => {
   try {
@@ -23,18 +24,18 @@ app.post('/register', (req, res) => {
   }
 })
 
-app.get('/', tokenVerification, (req, res) => {
+app.get('/', (req, res) => {
+  const _id = req.id;
+  console.log('home');
+  return res.send({ token: 'nice' });
+})
+
+app.get('/profile', jwtTokenVerification, (req, res) => {
   const _id = req.id;
 })
 
-router.get('/profile', tokenVerification, (req, res) => {
-  const _id = req.id;
-})
-
-router.post('/profile', tokenVerification, (req, res) => {
+app.post('/profile', jwtTokenVerification, (req, res) => {
 
 })
 
-app.use('/game',game);
-
-app.listen(3000);
+app.listen(8080);
