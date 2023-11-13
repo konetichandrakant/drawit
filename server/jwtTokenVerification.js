@@ -19,4 +19,4 @@ const jwtTokenVerification = async (req, res, next) => {
     }
 }
 
-module.exports = {jwtTokenVerification};
+module.exports = jwtTokenVerification;
