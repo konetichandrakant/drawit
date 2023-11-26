@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Typography } from '@mui/material';
-import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
-import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
-import fetch from '../AxiosInstance';
+import fetch from '../utils/axiosInstance';
 import Loading from './Loading';
 import Header from './Header';
 

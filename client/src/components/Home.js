@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Container, Box, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
-import fetch from '../AxiosInstance';
+import axiosInstance from '../utils/axiosInstance';
 import Loading from './Loading';
 import Header from './Header';
 
@@ -14,14 +14,14 @@ function Home() {
   useEffect(() => {
     console.log('call');
     const token = document.cookie.split('=')[1];
-    // fetch.get('/', { headers: { cookie: token } })
-    //   .then((res) => {
-    //     console.log(res.data);
-    //     setData(res.data);
-    //   })
-    //   .catch((err) => {
-    //     navigate('/login');
-    //   })
+    axiosInstance.get('/', { headers: { cookie: token } })
+      .then((res) => {
+        console.log(res.data);
+        setData(res.data);
+      })
+      .catch((err) => {
+        navigate('/login');
+      })
   }, [setData, navigate])
 
   return (
