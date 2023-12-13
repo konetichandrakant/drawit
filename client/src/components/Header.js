@@ -1,7 +1,6 @@
 import React from 'react';
 import drawit_logo3 from '../images/drawit_logo3.png';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import { Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 function Header({ profile }) {

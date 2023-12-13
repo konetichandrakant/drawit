@@ -6,7 +6,7 @@ import ml5 from "ml5";
 let classifier;
 let canvas;
 
-function DoodleClassifier({ drawItem, width, height }) {
+function DoodleClassifier({ drawItem, width, height, setDrawItem }) {
   const theme = useTheme();
   const [score, setScore] = useState(null);
 
@@ -37,19 +37,21 @@ function DoodleClassifier({ drawItem, width, height }) {
   };
 
   const calculateScore = (results) => {
+    let score = 0;
     for (let index in results) {
       const data = results[index];
       if (data['label'] === drawItem) {
-        return setScore(data['confidence']);
+        console.log(data['confidence'], results);
+        score = (data['confidence'] + ((results.length - index * 2) / results.length)) * 50;
       }
     }
+    setScore(score < 0 ? (score * -1) / 10 : score);
+    setDrawItem(drawItem);
   }
 
   const classifyImage = async () => {
     try {
-      // const trimmedCanvas = canvas.createGraphics(width, height);
       const results = await classifier.classify(canvas, 345);
-      console.log(results);
       calculateScore(results);
       clearCanvas(canvas);
     } catch (error) {

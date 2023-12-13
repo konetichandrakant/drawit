@@ -1,11 +1,10 @@
 import axios from 'axios';
-import globalState from './globalData';
+import { API_URL } from '../keys';
 
 const axiosInstance = axios.create();
 
 axiosInstance.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${globalState.jwtToken}`;
-  config.baseURL = globalState.apiHost;
+  config.baseURL = API_URL;
 
   return config;
 });

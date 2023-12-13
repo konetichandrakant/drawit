@@ -15,10 +15,7 @@ function Login() {
     fetch.post('/login', { email, password })
       .then((res) => {
         const data = res.data;
-        var cookie = '';
-        cookie += 'token=';
-        cookie += data['token'];
-        document.cookie = cookie;
+        localStorage.setItem('token', data.token);
         navigate('/');
       })
       .catch((err) => {
@@ -74,9 +71,6 @@ function Login() {
             Register
           </Button>
         </div>
-
-
-
       </Paper>
     </div>
   );

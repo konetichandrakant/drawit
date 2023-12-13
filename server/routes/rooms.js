@@ -1,21 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const jwtTokenVerification = require('../jwtTokenVerification');
-const roomIds= require('../misc/roomIds');
+const roomIds = require('../store/roomIds');
 
 router.post('/new', jwtTokenVerification, (req, res) => {
     const userId = req.id;
 
-    if(roomIds.length===0)
+    if (roomIds.length === 0)
         return res.status(500);
 
-    
-    res.status(200).send({ message: 'Game room created successfully' });
+    const roomId = roomIds.pop();
+    res.status(200).send({ roomId });
 });
 
-router.post('/enter', jwtTokenVerification, (req, res) => {
+router.post('/enter/:roomId', jwtTokenVerification, (req, res) => {
     const userId = req.id;
-    res.status(200).json({ message: 'Entered the game room successfully' });
+    const { roomId } = req.params;
+    res.status(200).send();
 });
+
+router.post('/play/:roomId', jwtTokenVerification, (req, res) => {
+    const userId = req.id;
+    const { roomId } = req.params;
+    res.status(200).send();
+})
+
+router.post('/end/:roomId', jwtTokenVerification, (req, res) => {
+    const userId = req.id;
+    const { roomId } = req.params;
+    return res.status(200).send();
+})
 
 module.exports = router;

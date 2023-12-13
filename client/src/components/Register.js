@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Paper, Typography, TextField, Button, Grid } from '@mui/material';
-import Loading from './Loading';
 import fetch from '../utils/axiosInstance';
 import drawitLogo from '../images/drawit_logo3.png';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +18,7 @@ function Register() {
     fetch.post('/register', { email, password })
       .then((res) => {
         const data = res.data;
-        var cookie = '';
-        cookie += 'token=';
-        cookie += data['token'];
-        document.cookie = cookie;
+        localStorage.setItem('token', data.token);
         navigate('/');
       })
       .catch((err) => {
@@ -69,26 +65,21 @@ function Register() {
           </Grid>
         </Grid>
         {
-          valid === "loading" && (
-            <Loading />
-          )
-        }
-        {
-          valid === false && (
+          valid !== false && (
             <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
               {valid}
             </Typography>
           )
         }
         {
-          valid !== false && valid !== null && (
+          valid === false && valid !== null && (
             <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
               ** user already exists **
             </Typography>
           )
         }
         <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>
-          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, width: '50%' }} onClick={onSubmit} >
+          <Button type="submit" variant="contained" disabled={valid === 'loading'} color="primary" sx={{ mt: 2, width: '50%' }} onClick={onSubmit} >
             Register
           </Button>
         </div>
