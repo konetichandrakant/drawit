@@ -9,18 +9,22 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    userAuthID: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'UserAuth'
-    },
-    gameIds: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+    gameInformation: {
+        type: [
+            {
+                gameId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'Game'
+                },
+                score: {
+                    type: Number
+                },
+                rank: {
+                    type: Number
+                }
+            }
+        ],
         default: []
-    }],
-    gamesWon: {
-        type: Number,
-        default: 0
     }
 });
 

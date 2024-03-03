@@ -413,3 +413,38 @@ function Game() {
 }
 
 export default Game
+
+
+{/* <div>
+<Typography textAlign={'center'}>
+  Play a game with your friends by entering in a room with ID
+</Typography>
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  <Button sx={{ marginBottom: '40px' }}>
+    Enter a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+  </Button>
+</div>
+</div>
+<div>
+<Typography textAlign={'center'}>
+  Create a room and play with your friends by sharing room ID with your mates
+</Typography>
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  <Button sx={{ marginBottom: '40px' }}>
+    Create a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+  </Button>
+</div>
+</div>
+<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '10px' }}>
+<Typography textAlign={'center'}>
+  Number of matches played: {data.matches}
+</Typography>
+<Typography textAlign={'center'}>
+  Number of matches won: {data.matchesWon}
+</Typography>
+<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+  <Button onClick={() => { }}>
+    Click for past matches <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+  </Button>
+</div>
+</div> */}

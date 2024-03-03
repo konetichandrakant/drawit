@@ -1,5 +1,4 @@
-const express = require('express');
-const app = express();
+const app = require('express')();
 const mongoose = require('mongoose');
 const http = require('http');
 const socketIO = require('socket.io');
@@ -8,8 +7,6 @@ const enums = require('../enum');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 
-const roomIds = [];
-const roomInfo = {};
 const server = http.createServer(app);
 const MONGODB_URL = keys.MONGODB_URL;
 
@@ -27,8 +24,6 @@ const start = async () => {
     console.log('connected to MONGODB');
     app.use('/game', require('./routes/game'));
     app.use('/', require('./routes/details'));
-    for (let i = 1000; i <= 9999; i++)
-      roomIds.push(i);
   } catch (err) {
     console.log(err);
   }
@@ -36,45 +31,32 @@ const start = async () => {
 
 start();
 
-const changeSocketID = (userId, socketId) => {
-  if (roomInfo[userId])
-    roomInfo[userId]['socketId'] = socketId;
-  else
-    roomInfo[userId] = { socketId, roomId: '' };
-  return roomInfo[userId];
-}
+const io = socketIO(server).of('/room');
+const roomIds = {};
+const userDetails = {};
 
-const addRoomId = (userId, roomId) => {
-  roomInfo[userId][roomId] = roomId;
-  return roomInfo[userId];
-}
-
-const room = socketIO(server).of('/room');
-
-room.use(async (socket, next) => {
+io.use(async (socket, next) => {
   try {
     const token = jwt.verify(socket.handshake.auth.token, JWT_SECRET_KEY);
-    const user = await User.findById(token.id);
-    if (!user)
-      new Error('not exist');
-    socket.details = changeSocketID(token.id, socket.id);
+    const userId = token._id;
+    const user = await User.findById(userId);
+    if (!user) return;
     next();
   } catch (error) {
     console.log('error');
+    return;
   }
-}).on('connection', (socket) => {
+}).on('connection', async (socket) => {
+  socket.on(enums.CREATE_ROOM, (roomId) => {
+    for(let i=1000;i<10000;i++){
+      if(!roomIds[i]){
 
-  const details = socket.details;
-
-  socket.on(enums.CREATE_ROOM, (roomId, cb) => {
-    socket.join(roomId);
-    cb(`Joined ${roomId}`);
+      }
+    }
   })
 
   socket.on(enums.JOIN_ROOM, (roomId) => {
-    socket.join(roomId);
-    addRoomId(details.userId, roomId);
-    room.to(roomId).emit(enums.JOIN_ROOM, { userId: details.userId });
+    io.to(roomId).emit(enums.JOIN_ROOM, { userId: details.userId });
   })
 
   socket.on(enums.LEVEL_SCORE, (data) => {

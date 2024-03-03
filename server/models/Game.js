@@ -1,12 +1,23 @@
 const mongoose = require('mongoose');
 
 const GameSchema = mongoose.Schema({
-  score: {
-    type: Number
-  },
-  drawingName: {
-
-  }
+    playedDate: {
+        type: Date
+    },
+    userInformation: {
+        type: [
+            {
+                userId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User'
+                },
+                score: {
+                    type: Number,
+                }
+            }
+        ],
+        default: []
+    }
 })
 
 const Game = mongoose.model('Game', GameSchema);
