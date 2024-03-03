@@ -4,20 +4,24 @@ const GameSchema = mongoose.Schema({
     playedDate: {
         type: Date
     },
-    userInformation: {
-        type: [
-            {
-                userId: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User'
-                },
-                score: {
-                    type: Number,
+    userInformation: [
+        {
+            userId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            levelInformation: [
+                {
+                    drawingItem: {
+                        type: String
+                    },
+                    score: {
+                        type: Number
+                    }
                 }
-            }
-        ],
-        default: []
-    }
+            ]
+        }
+    ]
 })
 
 const Game = mongoose.model('Game', GameSchema);

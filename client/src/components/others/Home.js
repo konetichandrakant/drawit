@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from '@mui/material';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
-import axiosInstance from '../utils/axiosInstance';
+import axiosInstance from '../../utils/axiosInstance';
 import Loading from './Loading';
 import Header from './Header';
 

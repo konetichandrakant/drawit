@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Paper, Typography, TextField, Button, Grid } from '@mui/material';
-import fetch from '../utils/axiosInstance';
+import fetch from '../../utils/axiosInstance';
 import drawitLogo from '../images/drawit_logo3.png';
 import { useNavigate } from 'react-router-dom';
 

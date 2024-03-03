@@ -9,23 +9,13 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    gameInformation: {
-        type: [
-            {
-                gameId: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'Game'
-                },
-                score: {
-                    type: Number
-                },
-                rank: {
-                    type: Number
-                }
-            }
-        ],
-        default: []
-    }
+    gameIds: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Game',
+            default: []
+        }
+    ]
 });
 
 const User = mongoose.model('User', userSchema);
