@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const jwtTokenVerification = require('../middleware/jwtTokenVerification');
-const jwt = require('jsonwebtoken');
+
 const User = require('../models/User');
 const Game = require('../models/Game');
-const { default: mongoose } = require('mongoose');
 
+const jwt = require('jsonwebtoken');
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+const jwtTokenVerification = require('../middleware/jwtTokenVerification');
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
