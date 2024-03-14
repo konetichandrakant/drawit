@@ -1,5 +1,5 @@
-const { generateRoomId } = require('../utils/gameFunctionality');
-const { CREATE_ROOM, JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, START_GAME, UPDATE_LEADERBOARD, END_GAME, DELETE_ROOM, ERROR } = require('../../enum');
+const { generateRoomId, getNextLevelDrawingItem } = require('../utils/gameFunctionality');
+const { CREATE_ROOM, JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, START_GAME, UPDATE_LEADERBOARD, NEXT_LEVEL, END_GAME, DELETE_ROOM, ERROR } = require('../../utils/enum');
 const { gameDetails, roomDetails, socketDetails } = require('../utils/globalState');
 
 // {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
@@ -55,11 +55,33 @@ exports.socketConnection = (server) => {
 
     socket.on(START_GAME, (data) => {
       const { roomId } = data;
-      io.to(roomId).emit(START_GAME,{drawingItem});
+      io.to(roomId).emit(START_GAME, { drawingItem });
+    })
+
+    socket.on(NEXT_LEVEL, (data) => {
+      const { roomId, username } = data;
+
+      const drawing = getNextLevelDrawingItem({ gameDetails, roomId, username });
+
+      for (let i = 0; i < gameDetails['levelInformation'].length; i++) {
+        if (drawing === gameDetails['levelInformation']['drawingItem']) {
+          gameDetails['levelInformation']['usersInformation'].push({ username: username, score: 0 });
+          return socket.emit(NEXT_LEVEL, { drawingItem: drawing });
+        }
+      }
+
+      if (gameDetails['levelInformation'].length === 3) {
+        return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });
+      }
+
+      gameDetails['levelInformation'].push({ drawingItem: drawing, usersInformation: [{ username, score: 0 }] });
+
+      return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });;
     })
 
     socket.on(UPDATE_LEADERBOARD, (data) => {
-
+      const { roomId, username, score } = data;
+      io.to(roomId).emit(UPDATE_LEADERBOARD, { username, score });
     })
 
     socket.on(END_GAME, (data) => {
@@ -76,3 +98,9 @@ exports.socketConnection = (server) => {
 
   })
 }
+
+// As of now, game is developed in such a way that it uses only one socket connection to connect and rooms are created
+// In future more optimised version will come with better speed and scalability
+// At present, I came up with a solution which does not have refresh feature and also if their is network interruption this does not works fine in some areas
+// In future, I will also address these above issues to make this more reliable and scalable with whatever best features I can come up I will definitely bring up
+// And doodlenet classifier is on client side as of which frontend part becomes heavy and it can take up good amount of time and makes client side a bit slow and memory might be eaten up because of network which needs to share the calssifier for every client

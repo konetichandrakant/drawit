@@ -22,7 +22,27 @@
 
 // let gameDetails = Object.freeze(new GameUtility());
 
-// {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
+{
+  roomId: {
+    levelInformation:
+    [
+      {
+        drawingItem: "",
+        usersInformation: [
+          {
+            "username": "u1",
+            "score": 0
+          },
+          {
+            "username": "u2",
+            "score": 1
+          }
+        ]
+      }
+    ]
+  }
+}
+
 exports.gameDetails = {};
 // {roomId: [usersWithTheirUsername]}
 exports.roomDetails = {};
