@@ -1,10 +1,8 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const keys = require('../keys');
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-const jwtTokenVerification = async (req, res, next) => {
+exports.jwtTokenVerification = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -21,5 +19,3 @@ const jwtTokenVerification = async (req, res, next) => {
         return res.status(404);
     }
 }
-
-module.exports = jwtTokenVerification;

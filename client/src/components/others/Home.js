@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Typography } from '@mui/material';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
-import axiosInstance from '../../utils/axiosInstance';
-import Loading from './Loading';
+import axios from 'axios';
 import Header from './Header';
+
+const API_URL = process.env.API_URL;
+const token = localStorage.getItem('token');
 
 function Home() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
+  // Data received should be in the below format
+  // { matchesPlayed : Number }
+
   useEffect(() => {
-    console.log(localStorage.getItem('token'));
-    axiosInstance.post('/', { token: localStorage.getItem('token') })
+    axios.post(API_URL + '/home', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then((res) => {
         setData(res.data);
       })
-      .catch((err) => {
-        console.log(err, 'home');
+      .catch(() => {
         navigate('/login');
       })
   }, [])

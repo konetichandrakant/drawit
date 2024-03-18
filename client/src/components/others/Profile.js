@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import fetch from '../../utils/axiosInstance';
-import Loading from './Loading';
+import axios from 'axios';
 import Header from './Header';
+
+const API_URL = process.env.API_URL;
+const token = localStorage.getItem('token');
 
 const Profile = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    console.log('call');
-    fetch.get('/user')
+    axios.get(API_URL + '/user', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then((res) => {
-        console.log(res.data);
         setData(res.data);
       })
-      .catch((err) => {
+      .catch(() => {
         navigate('/login');
       })
   }, [setData, navigate])

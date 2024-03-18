@@ -1,28 +1,37 @@
-import React, { useState } from 'react';
-import { Paper, Typography, TextField, Button, Grid } from '@mui/material';
-import fetch from '../../utils/axiosInstance';
-import drawitLogo from '../images/drawit_logo3.png';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import drawitLogo from '../images/drawit_logo3.png';
+
+const API_URL = process.env.API_URL;
 
 function Register() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [valid, setValid] = useState(null);
+  const email = useRef(null);
+  const password = useRef(null);
+  const confirmPassword = useRef(null);
+  const valid = useRef(null);
 
   const onSubmit = () => {
-    if (password !== confirmPassword)
-      return setValid('** password and confirm password are not same **');
-    setValid('loading');
-    fetch.post('/register', { email, password })
+    if (password.current.value !== confirmPassword.current.value)
+      return valid.current = '** password and confirm password are not same **';
+    valid.current = 'Loading...';
+    axios.post(API_URL + '/register', {
+      email: email.current.value,
+      password: password.current.value
+    })
       .then((res) => {
-        const data = res.data;
-        localStorage.setItem('token', data.token);
-        navigate('/');
+        const { token } = res.data;
+        localStorage.setItem('token', token);
+        navigate('/home');
       })
-      .catch((err) => {
-        setValid(false);
+      .catch(() => {
+        valid.current = '** user already exists **';
       })
   }
 
@@ -38,7 +47,7 @@ function Register() {
               type="email"
               label="Email"
               variant="outlined"
-              onChange={(e) => { setEmail(e.target.value) }}
+              ref={email}
               fullWidth
               required
             />
@@ -48,7 +57,7 @@ function Register() {
               type="password"
               label="Password"
               variant="outlined"
-              onChange={(e) => { setPassword(e.target.value) }}
+              ref={password}
               fullWidth
               required
             />
@@ -58,26 +67,21 @@ function Register() {
               type="password"
               label="Confirm Password"
               variant="outlined"
-              onChange={(e) => { setConfirmPassword(e.target.value) }}
+              ref={confirmPassword}
               fullWidth
               required
             />
           </Grid>
         </Grid>
+
         {
-          valid !== false && (
+          valid.current !== null && (
             <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
-              {valid}
+              {valid.current}
             </Typography>
           )
         }
-        {
-          valid === false && valid !== null && (
-            <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
-              ** user already exists **
-            </Typography>
-          )
-        }
+
         <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>
           <Button type="submit" variant="contained" disabled={valid === 'loading'} color="primary" sx={{ mt: 2, width: '50%' }} onClick={onSubmit} >
             Register

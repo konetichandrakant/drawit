@@ -1,25 +1,35 @@
-import React, { useState } from 'react';
-import { Paper, Typography, TextField, Button, Grid } from '@mui/material';
-import Loading from './Loading';
-import fetch from '../../utils/axiosInstance';
-import drawitLogo from '../images/drawit_logo3.png';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import drawitLogo from '../images/drawit_logo3.png';
+
+const API_URL = process.env.API_URL;
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [valid, setValid] = useState(null);
+  const email = useRef(null);
+  const password = useRef(null);
+  const valid = useRef('');
 
   const onSubmit = (e) => {
-    fetch.post('/login', { email, password })
+    valid.current = <Typography textAlign={'center'} paddingTop={'10px'}>Loading...</Typography>;
+
+    axios.post(API_URL + '/login', {
+      email: email.current.value,
+      password: password.current.value
+    })
       .then((res) => {
-        const data = res.data;
-        localStorage.setItem('token', data.token);
-        navigate('/');
+        const { token } = res.data;
+        localStorage.setItem('token', token);
+        navigate('/home');
       })
-      .catch((err) => {
-        setValid(false);
+      .catch(() => {
+        valid.current = <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>** Incorrect email or password **</Typography>;
       })
   }
 
@@ -35,7 +45,7 @@ function Login() {
               type="email"
               label="Email"
               variant="outlined"
-              onChange={(e) => { setEmail(e.target.value) }}
+              ref={email}
               fullWidth
               required
             />
@@ -45,24 +55,15 @@ function Login() {
               type="password"
               label="Password"
               variant="outlined"
-              onChange={(e) => { setPassword(e.target.value) }}
+              ref={password}
               fullWidth
               required
             />
           </Grid>
         </Grid>
-        {
-          valid === "loading" && (
-            <Loading />
-          )
-        }
-        {
-          valid !== null && (
-            <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
-              ** Incorrect email or password **
-            </Typography>
-          )
-        }
+
+        {valid.current}
+
         <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, width: '40%' }} onClick={onSubmit} >
             Login

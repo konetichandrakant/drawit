@@ -54,4 +54,4 @@ router.get('/profile', jwtTokenVerification, async (req, res) => {
   return res.status(200).send(gameDetails);
 });
 
-module.exports = router;
+exports.router = router;
