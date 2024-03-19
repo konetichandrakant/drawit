@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
+import axios from 'axios';
 import Header from '../others/Header';
 import LeaderBoard from './LeaderBoard';
 import DrawingArea from './DrawingArea';
-import axiosInstance from '../../utils/axiosInstance';
-import { drawItems } from '../../utils/drawingItem';
+
+const API_URL = process.env.API_URL;
+const token = localStorage.getItem('token');
 
 function Game() {
   const [store, setStore] = useState(null);
@@ -26,7 +28,14 @@ function Game() {
 
   useEffect(() => {
     if (!score || !drawItem) return;
-    axiosInstance.post('/game', { token: localStorage.getItem('token'), score, drawingName: drawItem })
+    axios.post(API_URL + '/game', {
+      score,
+      drawingName: drawItem
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then((res) => {
         console.log(res);
       })
@@ -46,7 +55,7 @@ function Game() {
                 score ? (
                   <>
                     <Box style={{ width: '55vw' }}>
-                      <DrawingArea drawItem={drawItems[parseInt(Math.random() * drawItems.length)]} width={store.canvasWidth} height={store.canvasHeight} setScore={setScore} setDrawItem={setDrawItem} />
+                      <DrawingArea drawItem={''} width={store.canvasWidth} height={store.canvasHeight} setScore={setScore} setDrawItem={setDrawItem} />
                     </Box>
                     <Box style={{ width: '35vw' }}>
                       <LeaderBoard width={store.LeaderBoardWidth} score={score} />
@@ -54,7 +63,7 @@ function Game() {
                   </>
                 ) : (
                   <Box style={{ width: '80vw' }}>
-                    <DrawingArea drawItem={drawItems[parseInt(Math.random() * drawItems.length)]} width={store.canvasWidth} height={store.canvasHeight} setScore={setScore} setDrawItem={setDrawItem} />
+                    <DrawingArea drawItem={''} width={store.canvasWidth} height={store.canvasHeight} setScore={setScore} setDrawItem={setDrawItem} />
                   </Box>
                 )
               }

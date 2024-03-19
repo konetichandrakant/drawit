@@ -1,7 +1,7 @@
 import React from 'react';
-import drawit_logo3 from '../images/drawit_logo3.png';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { useNavigate } from 'react-router-dom';
+import drawit_logo from '../../images/drawit_logo.png';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 
 function Header({ profile }) {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ function Header({ profile }) {
       {
         !profile && (
           <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-between' }}>
-            <img src={drawit_logo3} />
+            <img src={drawit_logo} />
             <span style={{ cursor: 'pointer' }} onClick={() => { console.log('profile'); navigate('/profile'); }}>
               <PersonOutlineIcon sx={{ height: '50px', width: '50px' }} />
             </span>
@@ -21,7 +21,7 @@ function Header({ profile }) {
       {
         profile && (
           <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-around' }}>
-            <img src={drawit_logo3} />
+            <img src={drawit_logo} />
           </div>
         )
       }

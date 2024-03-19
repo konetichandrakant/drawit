@@ -6,9 +6,10 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import drawitLogo from '../images/drawit_logo3.png';
+import drawitLogo from '../../images/drawit_logo.png';
 
-const API_URL = process.env.API_URL;
+// dotenv.config();
+const API_URL = process.env.API_URL || 'http://localhost:5000';
 
 function Login() {
   const navigate = useNavigate();

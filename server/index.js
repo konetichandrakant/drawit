@@ -1,8 +1,11 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const mongoose = require('mongoose');
 const http = require('http');
 const server = http.createServer(app);
+const dotenv = require('dotenv');
 
+dotenv.config();
 const MONGODB_URL = process.env.MONGODB_URL;
 
 app.use((req, res, next) => {
@@ -22,7 +25,7 @@ const start = async () => {
   }
 }
 
-await start();
+start();
 
 const PORT = process.env.PORT;
 

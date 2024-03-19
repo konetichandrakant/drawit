@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
-import axios from 'axios';
 import Header from './Header';
 
 const API_URL = process.env.API_URL;
@@ -41,7 +41,7 @@ function Home() {
 
       {
         data === null && (
-          <Loading />
+          <>Loading....</>
         )
       }
 

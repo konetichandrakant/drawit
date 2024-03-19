@@ -34,7 +34,7 @@ const Profile = () => {
 
       {
         data === null && (
-          <Loading />
+          <>Loading....</>
         )
       }
 
