@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Paper from '@mui/material/Paper';
@@ -8,22 +8,22 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import drawitLogo from '../../images/drawit_logo.png';
 
-const API_URL = process.env.API_URL;
+const API_URL = process.env.REACT_APP_API_URL;
+
+let details = { email: '', password: '', confirmPassword: '' };
 
 function Register() {
   const navigate = useNavigate();
-  const email = useRef(null);
-  const password = useRef(null);
-  const confirmPassword = useRef(null);
-  const valid = useRef(null);
+  const [valid, setValid] = useState(null);
 
   const onSubmit = () => {
-    if (password.current.value !== confirmPassword.current.value)
-      return valid.current = '** password and confirm password are not same **';
-    valid.current = 'Loading...';
+    if (details.password !== details.confirmPassword)
+      return setValid('** password and confirm password are not same **');
+    setValid('Loading...');
+    console.log(API_URL);
     axios.post(API_URL + '/register', {
-      email: email.current.value,
-      password: password.current.value
+      email: details.email,
+      password: details.password
     })
       .then((res) => {
         const { token } = res.data;
@@ -31,7 +31,7 @@ function Register() {
         navigate('/home');
       })
       .catch(() => {
-        valid.current = '** user already exists **';
+        return setValid('** user already exists **');
       })
   }
 
@@ -47,7 +47,7 @@ function Register() {
               type="email"
               label="Email"
               variant="outlined"
-              ref={email}
+              onChange={(e) => { details = { ...details, email: e.target.value } }}
               fullWidth
               required
             />
@@ -57,7 +57,7 @@ function Register() {
               type="password"
               label="Password"
               variant="outlined"
-              ref={password}
+              onChange={(e) => { details = { ...details, password: e.target.value } }}
               fullWidth
               required
             />
@@ -67,7 +67,7 @@ function Register() {
               type="password"
               label="Confirm Password"
               variant="outlined"
-              ref={confirmPassword}
+              onChange={(e) => { details = { ...details, confirmPassword: e.target.value } }}
               fullWidth
               required
             />
@@ -75,9 +75,9 @@ function Register() {
         </Grid>
 
         {
-          valid.current !== null && (
+          valid !== null && (
             <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
-              {valid.current}
+              {valid}
             </Typography>
           )
         }

@@ -1,5 +1,5 @@
 const express = require('express');
-const jwtTokenVerification = require('../middleware/jwtTokenVerification');
+const { jwtTokenVerification } = require('../middleware/jwtTokenVerification');
 const { getGameDetails, postGameDetails } = require('../controller/game');
 const router = express.Router();
 

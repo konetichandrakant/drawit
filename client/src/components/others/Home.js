@@ -7,10 +7,8 @@ import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
 import Header from './Header';
 
-const API_URL = process.env.API_URL;
-const token = localStorage.getItem('token');
-
 function Home() {
+  const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
@@ -20,7 +18,7 @@ function Home() {
   useEffect(() => {
     axios.post(API_URL + '/home', {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: localStorage.getItem('token')
       }
     })
       .then((res) => {

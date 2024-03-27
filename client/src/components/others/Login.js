@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Paper from '@mui/material/Paper';
@@ -8,29 +8,27 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import drawitLogo from '../../images/drawit_logo.png';
 
-// dotenv.config();
-const API_URL = process.env.API_URL || 'http://localhost:5000';
+
+let details = { email: '', password: '' };
 
 function Login() {
+  const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
-  const email = useRef(null);
-  const password = useRef(null);
-  const valid = useRef('');
+  const [valid, setValid] = useState(null);
 
   const onSubmit = (e) => {
-    valid.current = <Typography textAlign={'center'} paddingTop={'10px'}>Loading...</Typography>;
+    setValid('Loading...');
 
-    axios.post(API_URL + '/login', {
-      email: email.current.value,
-      password: password.current.value
-    })
+    axios.post(API_URL + '/login', details)
       .then((res) => {
-        const { token } = res.data;
-        localStorage.setItem('token', token);
+        const { token, message } = res.data;
+        if (!token)
+          return setValid(message);
+        localStorage.setItem('token', `Bearer ${token}`);
         navigate('/home');
       })
       .catch(() => {
-        valid.current = <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>** Incorrect email or password **</Typography>;
+        setValid('** Incorrect email or password **');
       })
   }
 
@@ -46,7 +44,7 @@ function Login() {
               type="email"
               label="Email"
               variant="outlined"
-              ref={email}
+              onChange={(e) => { details = { ...details, email: e.target.value } }}
               fullWidth
               required
             />
@@ -56,14 +54,20 @@ function Login() {
               type="password"
               label="Password"
               variant="outlined"
-              ref={password}
+              onChange={(e) => { details = { ...details, password: e.target.value } }}
               fullWidth
               required
             />
           </Grid>
         </Grid>
 
-        {valid.current}
+        {
+          valid !== null && (
+            <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
+              {valid}
+            </Typography>
+          )
+        }
 
         <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, width: '40%' }} onClick={onSubmit} >

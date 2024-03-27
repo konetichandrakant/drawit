@@ -3,17 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './Header';
 
-const API_URL = process.env.API_URL;
-const token = localStorage.getItem('token');
 
 const Profile = () => {
+  const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
   useEffect(() => {
     axios.get(API_URL + '/user', {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: localStorage.getItem('token')
       }
     })
       .then((res) => {
