@@ -24,7 +24,7 @@ function Login() {
         const { token, message } = res.data;
         if (!token)
           return setValid(message);
-        localStorage.setItem('token', `Bearer ${token}`);
+        localStorage.setItem('token', token);
         navigate('/home');
       })
       .catch(() => {

@@ -1,8 +1,12 @@
 const User = require('../models/User');
+const Game = require('../models/Game');
 
 exports.profileController = async (req, res) => {
-  const userId = req.userId;
+  const { userId, email } = req.userDetails;
   const user = await User.findById(userId);
+
+  if (user.email !== email)
+    return res.status(200).send({ "invalidUser": true })
 
   const { page, size } = req.query;
   const ids = [];
@@ -20,5 +24,11 @@ exports.profileController = async (req, res) => {
 }
 
 exports.homeController = async (req, res) => {
-  return '';
+  const { userId, email } = req.userDetails;
+  const user = await User.findById(userId);
+
+  if (user.email !== email)
+    return res.status(200).send({ "invalidUser": true })
+
+  return res.status(200).send({ noOfGamesPlayed: user.gameIds.length });
 }

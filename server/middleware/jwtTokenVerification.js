@@ -7,15 +7,15 @@ exports.jwtTokenVerification = async (req, res, next) => {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
         try {
-            const authToken = req.Authorization.substring(7);
+            const authToken = authHeader.substring(7);
             if (!authToken)
-                return res.status(404).send(false);
-            req.userId = jwt.verify(authToken, JWT_SECRET_KEY);
+                return res.status(200).send({ invalidUser: true });
+            req.userDetails = jwt.verify(authToken, JWT_SECRET_KEY);
             next();
         } catch {
-            return res.status(404);
+            return res.status(200).send({ invalidUser: true });
         }
     } else {
-        return res.status(404);
+        return res.status(200).send({ invalidUser: true });
     }
 }

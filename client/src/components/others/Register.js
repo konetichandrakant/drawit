@@ -10,7 +10,7 @@ import drawitLogo from '../../images/drawit_logo.png';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-let details = { email: '', password: '', confirmPassword: '' };
+let details = { email: '', password: '', confirmPassword: '', username: '' };
 
 function Register() {
   const navigate = useNavigate();
@@ -68,6 +68,16 @@ function Register() {
               label="Confirm Password"
               variant="outlined"
               onChange={(e) => { details = { ...details, confirmPassword: e.target.value } }}
+              fullWidth
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              type="text"
+              label="Username"
+              variant="outlined"
+              onChange={(e) => { details = { ...details, username: e.target.value } }}
               fullWidth
               required
             />

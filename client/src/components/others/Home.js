@@ -16,15 +16,19 @@ function Home() {
   // { matchesPlayed : Number }
 
   useEffect(() => {
-    axios.post(API_URL + '/home', {
+    axios.get(API_URL + '/home', {
       headers: {
         Authorization: localStorage.getItem('token')
       }
     })
       .then((res) => {
+        const { invalidUser } = res.data;
+        if (invalidUser)
+          return navigate('/login');
         setData(res.data);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.log(err);
         navigate('/login');
       })
   }, [])
@@ -57,13 +61,33 @@ function Home() {
                   </Button>
                 </div>
               </div>
+              <div>
+                <Typography textAlign={'center'}>
+                  Play with your friends by creating a room
+                </Typography>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
+                    Create a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Typography textAlign={'center'}>
+                  Play with your friends by joining in a room
+                </Typography>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
+                    Join a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                  </Button>
+                </div>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '10px' }}>
                 <Typography textAlign={'center'}>
-                  Number of matches played: {data.matchesPlayed}
+                  Number of matches played: {data.noOfGamesPlayed}
                 </Typography>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                   <Button onClick={() => { }}>
-                    Click for past matches <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                    Click for past matches details <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                   </Button>
                 </div>
               </div>

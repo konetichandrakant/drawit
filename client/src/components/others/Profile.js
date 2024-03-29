@@ -10,12 +10,15 @@ const Profile = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    axios.get(API_URL + '/user', {
+    axios.get(API_URL + '/profile', {
       headers: {
         Authorization: localStorage.getItem('token')
       }
     })
       .then((res) => {
+        const { invalidUser } = res.data;
+        if (invalidUser)
+          return navigate('/login');
         setData(res.data);
       })
       .catch(() => {
