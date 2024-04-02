@@ -25,7 +25,7 @@ function Header({ profile }) {
       }
       {
         profile && (
-          <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-around' }}>
+          <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-between' }}>
             <img src={drawit_logo} />
             <Button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} sx={{ '&:hover': { backgroundColor: 'red' }, backgroundColor: 'red', color: 'white' }}>
               Log Out

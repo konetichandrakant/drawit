@@ -7,6 +7,7 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 exports.loginController = async (req, res) => {
   const { email, password } = req.body;
+  
   try {
     const user = await User.findOne({ email: email });
 

@@ -86,7 +86,7 @@ function Home() {
                   Number of matches played: {data.noOfGamesPlayed}
                 </Typography>
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                  <Button onClick={() => { }}>
+                  <Button onClick={() => { navigate('/games') }}>
                     Click for past matches details <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                   </Button>
                 </div>
