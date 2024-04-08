@@ -11,6 +11,7 @@ import drawitLogo from '../../images/drawit_logo.png';
 let details = { email: '', password: '' };
 
 function Login() {
+  document.title = 'Login';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [valid, setValid] = useState(null);
@@ -27,7 +28,7 @@ function Login() {
         navigate('/home');
       })
       .catch(() => {
-        setValid('** Incorrect email or password **');
+        return setValid('** Some error occured please try again! **');
       })
   }
 

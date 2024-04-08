@@ -43,8 +43,57 @@
 //   }
 // }
 
-exports.gameDetails = {};
-// {roomId: [usersWithTheirUsername]}
-exports.roomDetails = {};
-// {username: userSocketId}
-exports.socketDetails = {};
+class Details {
+
+  constructor() {
+    if (Details.instance == null) {
+      this.gameDetails = {};
+      this.roomDetails = {};
+      this.socketDetails = {};
+
+      Details.instance = this;
+    }
+
+    return Details.instance
+  }
+
+  isRoomPresent(roomId) {
+    return roomId in this.roomDetails;
+  }
+
+  getRoomDetailsById(roomId) {
+    return this.roomDetails[roomId];
+  }
+
+  setRoomDetailsById(roomId, data) {
+    this.roomDetails[roomId] = data;
+  }
+
+  getGameDetailsById(roomId) {
+    return this.gameDetails[roomId];
+  }
+
+  setGameDetailsById(roomId, data) {
+    this.gameDetails[roomId] = data;
+  }
+
+  getSocketDetailsById(roomId) {
+    return this.socketDetails[roomId];
+  }
+
+  setSocketDetailsById(roomId, data) {
+    this.socketDetails[roomId] = data;
+  }
+
+}
+
+var detailsObject = new Details();
+Object.freeze(detailsObject);
+
+export default detailsObject;
+
+// exports.gameDetails = {};
+// // {roomId: [usersWithTheirUsername]}
+// exports.roomDetails = {};
+// // {username: userSocketId}
+// exports.socketDetails = {};

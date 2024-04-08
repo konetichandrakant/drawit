@@ -13,25 +13,30 @@ const API_URL = process.env.REACT_APP_API_URL;
 let details = { email: '', password: '', confirmPassword: '', username: '' };
 
 function Register() {
+  document.title = 'Register';
   const navigate = useNavigate();
   const [valid, setValid] = useState(null);
+  window.title = 'Login';
 
   const onSubmit = () => {
     if (details.password !== details.confirmPassword)
       return setValid('** password and confirm password are not same **');
     setValid('Loading...');
-    console.log(API_URL);
+
     axios.post(API_URL + '/register', {
       email: details.email,
-      password: details.password
+      password: details.password,
+      username: details.username
     })
       .then((res) => {
-        const { token } = res.data;
+        const { token, message } = res.data;
+        if (!token)
+          return setValid(message);
         localStorage.setItem('token', token);
         navigate('/home');
       })
       .catch(() => {
-        return setValid('** user already exists **');
+        return setValid('** Some error occured please try again! **');
       })
   }
 

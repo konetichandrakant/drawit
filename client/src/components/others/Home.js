@@ -8,6 +8,7 @@ import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutl
 import Header from './Header';
 
 function Home() {
+  document.title = 'Home';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -66,7 +67,7 @@ function Home() {
                   Play with your friends by creating a room
                 </Typography>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
+                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/create-room')}>
                     Create a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                   </Button>
                 </div>
@@ -76,7 +77,7 @@ function Home() {
                   Play with your friends by joining in a room
                 </Typography>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
+                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/join-room')}>
                     Join a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                   </Button>
                 </div>

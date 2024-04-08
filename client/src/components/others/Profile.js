@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 
 const Profile = () => {
+  document.title='Profile';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);

@@ -1,6 +1,7 @@
-const { generateRoomId, getNextLevelDrawingItem } = require('../utils/gameFunctionality');
-const { CREATE_ROOM, JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, START_GAME, UPDATE_LEADERBOARD, NEXT_LEVEL, END_GAME, DELETE_ROOM, ERROR } = require('../../utils/enum');
-const { gameDetails, roomDetails, socketDetails } = require('../utils/globalState');
+const { generateRoomId, getNextLevelDrawingItem } = require('../../utils/gameFunctionality');
+const { CREATE_ROOM, JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, START_GAME, UPDATE_LEADERBOARD, NEXT_LEVEL, END_GAME, DELETE_ROOM, ERROR } = require('../../../utils/enum');
+const { gameDetails, roomDetails, socketDetails } = require('../../utils/globalState');
+const jwt = require('jsonwebtoken');
 
 // {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
 // {roomId: [usersWithTheirUsername]}
@@ -11,13 +12,33 @@ let io;
 exports.socketConnection = (server) => {
   io = require('socket.io')(server);
 
+  io.use((socket, next) => {
+    try {
+      const token = socket.handshake.auth.token;
+
+      if (!token && !token.startsWith('Bearer ')) {
+        return new Error('Invalid token');
+      }
+      try {
+        const authToken = authHeader.substring(7);
+        if (!authToken)
+          return new Error('Invalid token');
+        socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY);
+        next();
+      } catch {
+        return new Error('Invalid token');
+      }
+    } catch (err) {
+      return err;
+    }
+  });
+
   io.on('connection', (socket) => {
 
     // Just after connecting we need to
-
     // Here we should keep in mind who created room and keep a storage for who is the owner of this room
     socket.on(CREATE_ROOM, (data) => {
-      const { username } = data;
+      const { email } = socket.userDetails;
 
       const generatedRoomId = generateRoomId({ roomDetails });
       socket.join(generatedRoomId);
@@ -53,7 +74,7 @@ exports.socketConnection = (server) => {
       io.to(roomId).emit(ACCEPTED_JOIN_ROOM, { message: username + ' was accepted by owner to join the room' });
     })
 
-    socket.on(START_GAME, (data) => {
+    socket.on(START_GAME, (data) => {s
       const { roomId } = data;
       io.to(roomId).emit(START_GAME, { drawingItem });
     })

@@ -3,8 +3,8 @@ const app = express();
 const mongoose = require('mongoose');
 const http = require('http');
 const server = http.createServer(app);
-const { authRouter } = require('./routes/authRoutes');
-const { otherRouter } = require('./routes/otherRoutes');
+const { authRouter } = require('./src/routes/authRoutes');
+const { otherRouter } = require('./src/routes/otherRoutes');
 
 require('dotenv').config();
 const MONGODB_URL = process.env.MONGODB_URL;
