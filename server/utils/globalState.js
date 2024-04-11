@@ -1,46 +1,29 @@
-// let instance = null;
-// let details = [];
-
-// // {roomId, levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}
-
-// class GameUtility {
-//   constructor() {
-//     if (instance) {
-//       throw new Error("New Object cannot be created");
-//     }
-//     instance = this;
-//   }
-
-//   getGameDetails() {
-//     return details;
-//   }
-
-//   setGameDetails(updatedDetails) {
-//     details = updatedDetails;
-//   }
-// }
-
-// let gameDetails = Object.freeze(new GameUtility());
-
+// exports.gameDetails = {};
 // {
 //   roomId: {
 //     levelInformation:
 //     [
 //       {
 //         drawingItem: "",
-//         usersInformation: [
-//           {
-//             "username": "u1",
-//             "score": 0
-//           },
-//           {
-//             "username": "u2",
-//             "score": 1
-//           }
-//         ]
+//         userInformation: {
+//             "userId": score,
+//         }
 //       }
 //     ]
 //   }
+// }
+
+// exports.roomDetails = {};
+// {
+//   roomId: {
+//     users: [ { userId: Boolean() }]
+//     owner: userId
+//   }
+// }
+
+// exports.socketDetails = {};
+// {
+//   userId: socketId
 // }
 
 class Details {
@@ -69,6 +52,10 @@ class Details {
     this.roomDetails[roomId] = data;
   }
 
+  getAllRoomDetails() {
+    return this.roomDetails;
+  }
+
   getGameDetailsById(roomId) {
     return this.gameDetails[roomId];
   }
@@ -77,12 +64,16 @@ class Details {
     this.gameDetails[roomId] = data;
   }
 
-  getSocketDetailsById(roomId) {
-    return this.socketDetails[roomId];
+  getAllGameDetails() {
+    return this.gameDetails;
   }
 
-  setSocketDetailsById(roomId, data) {
-    this.socketDetails[roomId] = data;
+  getSocketIdByUserId(userId) {
+    return this.socketDetails[userId];
+  }
+
+  setSocketIdByUserId(userId, socketId) {
+    return this.socketDetails[userId] = socketId;
   }
 
 }
@@ -91,9 +82,3 @@ var detailsObject = new Details();
 Object.freeze(detailsObject);
 
 export default detailsObject;
-
-// exports.gameDetails = {};
-// // {roomId: [usersWithTheirUsername]}
-// exports.roomDetails = {};
-// // {username: userSocketId}
-// exports.socketDetails = {};

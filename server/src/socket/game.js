@@ -1,16 +1,17 @@
 const { generateRoomId, getNextLevelDrawingItem } = require('../../utils/gameFunctionality');
-const { CREATE_ROOM, JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, START_GAME, UPDATE_LEADERBOARD, NEXT_LEVEL, END_GAME, DELETE_ROOM, ERROR } = require('../../../utils/enum');
-const { gameDetails, roomDetails, socketDetails } = require('../../utils/globalState');
+const { CREATE_ROOM, JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, START_GAME, UPDATE_LEADERBOARD, NEXT_LEVEL, END_GAME, ERROR } = require('../../../utils/enum');
+const globalInstance = require('../../utils/globalState');
 const jwt = require('jsonwebtoken');
 
 // {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
-// {roomId: [usersWithTheirUsername]}
-// {username: userSocketId}
+// {roomId: [usersWithTheirUserId]}
+// {userId: userSocketId}
 
 let io;
 
-exports.socketConnection = (server) => {
+exports.roomSocket = (server) => {
   io = require('socket.io')(server);
+  io = io.of('/room');
 
   io.use((socket, next) => {
     try {
@@ -38,78 +39,98 @@ exports.socketConnection = (server) => {
     // Just after connecting we need to
     // Here we should keep in mind who created room and keep a storage for who is the owner of this room
     socket.on(CREATE_ROOM, (data) => {
-      const { email } = socket.userDetails;
+      const { userId } = socket.userDetails;
 
-      const generatedRoomId = generateRoomId({ roomDetails });
+      const generatedRoomId = generateRoomId({ roomDetails: globalInstance.getAllRoomDetails() });
       socket.join(generatedRoomId);
 
-      roomDetails[generateRoomId] = [username];
-      socketDetails[username] = socket.id;
+      globalInstance.setRoomDetailsById(generateRoomId, { 'owner': userId, 'users': [{ userId: true }] });
 
       socket.emit({ roomId: generateRoomId, message: 'Room created!!' });
     })
 
     // After a person hits join room button the request is catched here. Here the request is sent only to the owner of the room
     socket.on(JOIN_ROOM_REQUEST, (data) => {
-      const { roomId, username } = data;
+      const { userId, email } = socket.userDetails;
+      const { roomId } = data;
 
       // send his/her join request to the owner
-      const rDetails = roomDetails[roomId];
+      const roomDetails = globalInstance.getRoomDetailsById(roomId);
 
-      if (username in rDetails) {
-        return socket.emit(ERROR, { message: 'You are already logged in different browser/ tab please have a look at it!!' });
+      if (userId in roomDetails) {
+        return socket.emit(ERROR, { message: 'You are already logged in different browser/tab please have a look at it!!' });
       }
 
       // sending message to owner of the room
-      const ownerUsername = rDetails[0];
-      const ownerSocketId = socketDetails[ownerUsername];
+      const ownerUserId = roomDetails['owner'];
+      const ownerSocketId = socketDetails[ownerUserId];
 
-      io.sockets.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { username, message: 'The user with username ' + username + ' wants to join the room' });
+      io.sockets.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, message: 'The user with email ' + email + ' wants to join the room' });
     })
 
     // After accepting the person the request is sent to the server and caught here. Moreover, we should send the admitted person details to all members in the group
     // If not accepted we need to let the user who wants to play know that he/she was denied by owner.
     socket.on(ACCEPTED_JOIN_ROOM, (data) => {
-      const { roomId, username } = data;
-      io.to(roomId).emit(ACCEPTED_JOIN_ROOM, { message: username + ' was accepted by owner to join the room' });
+      const { roomId, email } = data;
+
+      io.to(roomId).emit(ACCEPTED_JOIN_ROOM, { message: email + ' was accepted by owner to join the room' });
     })
 
-    socket.on(START_GAME, (data) => {s
+    socket.on(START_GAME, (data) => {
       const { roomId } = data;
-      io.to(roomId).emit(START_GAME, { drawingItem });
+
+      io.to(roomId).emit(START_GAME, { message: 'Owner of the room started the game!!' });
     })
+
+  })
+}
+
+exports.gameSocket = (server) => {
+  io = require('socket.io')(server);
+  io = io.of('/game');
+
+  io.use((socket, next) => {
+    try {
+      const token = socket.handshake.auth.token;
+
+      if (!token && !token.startsWith('Bearer ')) {
+        return new Error('Invalid token');
+      }
+      try {
+        const authToken = authHeader.substring(7);
+        if (!authToken)
+          return new Error('Invalid token');
+        socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY);
+        next();
+      } catch {
+        return new Error('Invalid token');
+      }
+    } catch (err) {
+      return err;
+    }
+  });
+
+  io.on('connection', (socket) => {
 
     socket.on(NEXT_LEVEL, (data) => {
-      const { roomId, username } = data;
+      const { userId } = socket.userDetails;
+      const { roomId } = data;
 
-      const drawing = getNextLevelDrawingItem({ gameDetails, roomId, username });
-
-      for (let i = 0; i < gameDetails['levelInformation'].length; i++) {
-        if (drawing === gameDetails['levelInformation']['drawingItem']) {
-          gameDetails['levelInformation']['usersInformation'].push({ username: username, score: 0 });
-          return socket.emit(NEXT_LEVEL, { drawingItem: drawing });
-        }
-      }
-
-      if (gameDetails['levelInformation'].length === 3) {
-        return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });
-      }
-
-      gameDetails['levelInformation'].push({ drawingItem: drawing, usersInformation: [{ username, score: 0 }] });
+      const nextLevelDetails = getNextLevelDrawingItem({ gameDetails: globalInstance.getGameDetailsById(roomId), userId });
 
       return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });;
     })
 
     socket.on(UPDATE_LEADERBOARD, (data) => {
-      const { roomId, username, score } = data;
-      io.to(roomId).emit(UPDATE_LEADERBOARD, { username, score });
+      const { roomId, userId, score, level } = data;
+
+      const gameDetails = globalInstance.getRoomDetailsById(roomId);
+      gameDetails[level]['usersInformation'][userId] = score;
+
+      io.to(roomId).emit(UPDATE_LEADERBOARD, { userId, score });
     })
 
     socket.on(END_GAME, (data) => {
-
-    })
-
-    socket.on(DELETE_ROOM, (data) => {
 
     })
 

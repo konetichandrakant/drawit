@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import drawit_logo from '../../images/drawit_logo.png';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import Button from '@mui/material/Button';
+import drawitLogo from '../../images/drawit_logo.png';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 
 function Header({ profile }) {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ function Header({ profile }) {
             <span style={{ cursor: 'pointer' }} onClick={() => { console.log('profile'); navigate('/profile'); }}>
               <PersonOutlineIcon sx={{ height: '50px', width: '50px' }} />
             </span>
-            <img src={drawit_logo} />
+            <img src={drawitLogo} />
             <Button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} sx={{ '&:hover': { backgroundColor: 'red' }, backgroundColor: 'red', color: 'white' }}>
               Log Out
             </Button>
@@ -26,7 +26,7 @@ function Header({ profile }) {
       {
         profile && (
           <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-between' }}>
-            <img src={drawit_logo} />
+            <img src={drawitLogo} />
             <Button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} sx={{ '&:hover': { backgroundColor: 'red' }, backgroundColor: 'red', color: 'white' }}>
               Log Out
             </Button>

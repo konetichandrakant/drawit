@@ -1,4 +1,5 @@
 const { drawItems } = require('./drawingItem');
+const globalInstance = require('../../utils/globalState');
 
 exports.generateRoomId = (data) => {
   const { roomDetails } = data;
@@ -10,17 +11,16 @@ exports.generateRoomId = (data) => {
 }
 
 exports.getNextLevelDrawingItem = (data) => {
-  const { gameDetails, roomId, username } = data;
-  const gDetails = gameDetails[roomId];
+  const { gameDetails,userId } = data;
 
-  for (let levelInformation in gDetails['levelInformation']) {
-    if (!(username in levelInformation['usersInformation'])) {
-      return levelInformation['usersInformation']['drawingItem'];
+  for (let levelInformation in gameDetails['levelInformation']) {
+    if (!(userId in levelInformation['usersInformation'])) {
+      return {valid:true,drawingItem:levelInformation['usersInformation']['drawingItem']};
     }
   }
 
   let excludeDrawings = [];
-  gDetails['levelInformation'].map((info) => { excludeDrawings.push(info['drawingItem']) })
+  gameDetails['levelInformation'].map((info) => { excludeDrawings.push(info['drawingItem']) })
 
   return generateDrawingItem(excludeDrawings);
 }
