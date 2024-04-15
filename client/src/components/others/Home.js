@@ -34,6 +34,19 @@ function Home() {
       })
   }, [])
 
+  const createRoom = () => {
+    axios.get(API_URL + '/create-room', {
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    }).then((response) => {
+      const { roomId } = response.data;
+      navigate('/create-room/' + roomId);
+    }).catch(() => {
+      alert('cant create room please try again!!')
+    })
+  }
+
   return (
     <>
       {
@@ -67,7 +80,7 @@ function Home() {
                   Play with your friends by creating a room
                 </Typography>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/create-room')}>
+                  <Button sx={{ marginBottom: '40px' }} onClick={() => createRoom()}>
                     Create a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                   </Button>
                 </div>
