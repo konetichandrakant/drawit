@@ -16,7 +16,7 @@
 // exports.roomDetails = {};
 // {
 //   roomId: {
-//     users: [ { userId: Boolean() }]
+//     users: [ userId ]
 //     owner: userId
 //   }
 // }
@@ -76,9 +76,13 @@ class Details {
     return this.socketDetails[userId] = socketId;
   }
 
+  isUserPresent(userId) {
+    return userId in this.socketDetails;
+  }
+
 }
 
 var detailsObject = new Details();
 Object.freeze(detailsObject);
 
-export default detailsObject;
+exports.globalState = detailsObject;

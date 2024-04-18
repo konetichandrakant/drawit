@@ -3,14 +3,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
 import io from "socket.io-client";
 import { ACCEPTED_JOIN_ROOM, CREATE_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
 
 function CreateRoom() {
   // Please enter the code as {xyz...} to enter my room. Lets DrawIt together!!
+  document.title = 'Create Room';
+  const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const { roomId } = useSearchParams();
   const [data, setData] = useState(null);
@@ -24,8 +24,7 @@ function CreateRoom() {
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  useEffect(async () => {
-
+  const intialLoad = async () => {
     if (roomId) {
       try {
         const response = await axios.get('/create-room/' + roomId, {
@@ -42,9 +41,17 @@ function CreateRoom() {
 
     const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
     setSocket(await io.connect(SOCKET_URL + '/room'));
+  }
+
+  useEffect(async () => {
+
+    intialLoad();
+
   }, [])
 
   useEffect(() => {
+    if (socket === null) return;
+
     socket.emit(CREATE_ROOM, { roomId }, (response) => {
       setData(response.data);
     })
@@ -85,30 +92,6 @@ function CreateRoom() {
 
   return (
     <>
-      {
-        !roomId && (
-          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-              <Typography textAlign={'center'}>
-                Please enter the room ID to join the room. Also, please wait until the owner of the room gives some response to your request!!
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    type="email"
-                    label="Email"
-                    variant="outlined"
-                    onChange={(e) => { details = { ...details, roomId: e.target.value } }}
-                    fullWidth
-                    required
-                  />
-                </Grid>
-              </Grid>
-              <Button onClick={validate}>Enter the room</Button>
-            </Paper>
-          </div>
-        )
-      }
 
       {
         roomId && socket && data && (

@@ -12,6 +12,8 @@ import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
 let details = { roomId: null };
 
 function JoinRoom() {
+  document.title = 'Join Room';
+  const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const { roomId } = useSearchParams();
   const [data, setData] = useState([]);
@@ -24,8 +26,7 @@ function JoinRoom() {
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  useEffect(async () => {
-
+  const initialLoad = async () => {
     if (roomId) {
       try {
         const response = await axios.get('/join-room/' + roomId, {
@@ -45,10 +46,17 @@ function JoinRoom() {
     if (roomId) {
       setSocket(await io.connect(SOCKET_URL + '/room'));
     }
+  }
+
+  useEffect(() => {
+
+    initialLoad();
 
   }, [])
 
   useEffect(() => {
+    if (socket === null) return;
+
     socket.emit(JOIN_ROOM_REQUEST, { roomId }, (response) => {
       if (response.success) {
         setData(response.data);
@@ -62,6 +70,12 @@ function JoinRoom() {
     })
   }, [socket])
 
+  const validate = (roomId) => {
+    axios.get(API_URL + '/valid-join-room/' + roomId).then(() => {
+      navigate('/join-room/' + roomId);
+    })
+  }
+
   return (
     <>
       {
@@ -74,8 +88,8 @@ function JoinRoom() {
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField
-                    type="email"
-                    label="Email"
+                    type="text"
+                    label="Room ID"
                     variant="outlined"
                     onChange={(e) => { details = { ...details, roomId: e.target.value } }}
                     fullWidth

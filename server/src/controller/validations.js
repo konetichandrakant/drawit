@@ -1,23 +1,45 @@
-const globalState = require('../../utils/globalState');
+const { globalState } = require('../../utils/globalState');
 
-exports.validRoomController = (req, res) => {
+exports.validGameRoomController = (req, res) => {
   const { roomId } = req.params;
+  const { userId } = req.userDetails;
 
-  const isRoomPresent = globalState.isRoomPresent(roomId);
+  const roomDetails = globalState.getRoomDetailsById(roomId);
 
-  return res.status(200).send({ isRoomPresent });
+  if (!roomDetails)
+    return res.status(200).send({ error: true, message: 'There is no such room created!!' });
+
+  if (!(userId in roomDetails['users']) && !(roomDetails['owner'] === userId))
+    return res.status(404).send({ message: 'You are not authorised to play the game!!' });
+
+  return res.status(200).send(true);
 }
 
-exports.validGameController = (req, res) => {
+exports.validCreateRoomController = (req, res) => {
   const { roomId } = req.params;
-  const { email } = req.userDetails;
+  const { userId } = req.userDetails;
 
-  const gameDetails = globalState.getGameDetailsById(roomId);
+  const roomDetails = globalState.getRoomDetailsById(roomId);
 
-  if (!gameDetails)
-    return res.status(404).send({ message: '' });
+  if (!roomDetails)
+    return res.status(200).send({ error: true, message: 'There is no such room created!!' });
 
-  if (!(email in gameDetails))
+  if (!(roomDetails['owner'] === userId))
+    return res.status(404).send({ message: 'You are not authorised to play the game!!' });
+
+  return res.status(200).send(true);
+}
+
+exports.validJoinRoomController = (req, res) => {
+  const { roomId } = req.params;
+  const { userId } = req.userDetails;
+
+  const roomDetails = globalState.getRoomDetailsById(roomId);
+
+  if (!roomDetails)
+    return res.status(200).send({ error: true, message: 'There is no such room created!!' });
+
+  if (!(userId in roomDetails['users']))
     return res.status(404).send({ message: 'You are not authorised to play the game!!' });
 
   return res.status(200).send(true);

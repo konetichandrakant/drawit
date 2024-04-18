@@ -1,7 +1,10 @@
 const express = require('express');
 const { jwtTokenVerification } = require('../middleware/jwtTokenVerification');
-const { getGameDetails, postGameDetails } = require('../controller/game');
+const { getRoomIdController, getGameDetailsController, postGameDetailsController } = require('../controller/game');
 const router = express.Router();
 
-router.get('/game/:id', jwtTokenVerification, getGameDetails);
-router.post('/game', jwtTokenVerification, postGameDetails);
+router.get('/create-room', jwtTokenVerification, getRoomIdController)
+router.get('/game/:id', jwtTokenVerification, getGameDetailsController);
+router.post('/game', jwtTokenVerification, postGameDetailsController);
+
+exports.gameRouter = router;
