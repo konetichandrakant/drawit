@@ -17,6 +17,12 @@ function Home() {
   // { matchesPlayed : Number }
 
   useEffect(() => {
+
+    initialLoad();
+
+  }, [])
+
+  const initialLoad = () => {
     axios.get(API_URL + '/home', {
       headers: {
         Authorization: localStorage.getItem('token')
@@ -28,11 +34,10 @@ function Home() {
           return navigate('/login');
         setData(res.data);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(() => {
         navigate('/login');
       })
-  }, [])
+  }
 
   const createRoom = () => {
     axios.get(API_URL + '/create-room', {

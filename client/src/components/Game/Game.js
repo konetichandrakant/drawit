@@ -70,4 +70,4 @@ function Game({ drawItem }) {
   )
 }
 
-export default Game;
+export default Game

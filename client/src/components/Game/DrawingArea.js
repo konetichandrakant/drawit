@@ -109,4 +109,4 @@ function DoodleClassifier({ drawItem, width, height, setDrawItem }) {
   );
 };
 
-export default DoodleClassifier;
+export default DoodleClassifier

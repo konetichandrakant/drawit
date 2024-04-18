@@ -1,6 +1,5 @@
-const { getNextLevelDrawingItem } = require('../../utils/gameFunctionality');
 const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../../../utils/enum');
-const globalInstance = require('../../utils/globalState');
+const { globalState } = require('../../utils/globalState');
 const jwt = require('jsonwebtoken');
 
 // {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
@@ -17,14 +16,13 @@ exports.gameSocket = (server) => {
     try {
       const token = socket.handshake.auth.token;
 
-      if (!token && !token.startsWith('Bearer ')) {
+      if (!token || !token.startsWith('Bearer ')) {
         return new Error('Invalid token');
       }
+
       try {
-        const authToken = authHeader.substring(7);
-        if (!authToken)
-          return new Error('Invalid token');
-        socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY);
+        const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
+        socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY); // Replace with your secret key
         next();
       } catch {
         return new Error('Invalid token');
@@ -40,22 +38,18 @@ exports.gameSocket = (server) => {
       const { userId } = socket.userDetails;
       const { roomId } = data;
 
-      const nextLevelDetails = getNextLevelDrawingItem({ gameDetails: globalInstance.getGameDetailsById(roomId), userId });
+      const nextLevelDetails = getNextLevelDrawingItem({ gameDetails: globalState.getGameDetailsById(roomId), userId });
 
-      return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });;
+      return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });
     })
 
     socket.on(UPDATE_LEADERBOARD, (data) => {
       const { roomId, userId, score, level } = data;
 
-      const gameDetails = globalInstance.getRoomDetailsById(roomId);
+      const gameDetails = globalState.getRoomDetailsById(roomId);
       gameDetails[level]['usersInformation'][userId] = score;
 
       io.to(roomId).emit(UPDATE_LEADERBOARD, { userId, score });
-    })
-
-    socket.on(END_GAME, (data) => {
-
     })
 
     socket.on('disconnect', (data) => {
@@ -63,6 +57,27 @@ exports.gameSocket = (server) => {
     })
 
   })
+}
+
+const getNextLevelDrawingItem = ({ gameDetails, userId }) => {
+
+  for (let levelInformation in gameDetails['levelInformation']) {
+    if (!(userId in levelInformation['usersInformation'])) {
+      return { valid: true, drawingItem: levelInformation['usersInformation']['drawingItem'] };
+    }
+  }
+
+  let excludeDrawings = [];
+  gameDetails['levelInformation'].map((info) => { excludeDrawings.push(info['drawingItem']) })
+
+  // Random drawing item which is not given to any player
+  while (true) {
+    const randIndex = (drawItems.length * Math.random()) % drawItems.length;
+    drawing = drawItems[randIndex];
+    if (!(drawing in excludeDrawings)) {
+      return drawing;
+    }
+  }
 }
 
 // As of now, game is developed in such a way that it uses only one socket connection to connect and rooms are created

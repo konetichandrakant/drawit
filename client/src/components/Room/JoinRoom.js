@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -15,8 +15,9 @@ function JoinRoom() {
   document.title = 'Join Room';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
-  const { roomId } = useSearchParams();
-  const [data, setData] = useState([]);
+  const { roomId } = useParams();
+  console.log(useParams());
+  const [data, setData] = useState(null);
   const [socket, setSocket] = useState(null);
   const [denied, setDenied] = useState(null);
   const [isRoomPresent, setIsRoomPresent] = useState(null);
@@ -26,25 +27,22 @@ function JoinRoom() {
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  const initialLoad = async () => {
+  const initialLoad = () => {
     if (roomId) {
-      try {
-        const response = await axios.get('/join-room/' + roomId, {
-          headers: {
-            Authorization: localStorage.getItem('token')
-          }
-        })
+      axios.get(API_URL + '/valid-join-room/' + roomId, {
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      }).then(async (response) => {
+        const { isRoomPresent } = response.data;
 
-        setIsRoomPresent(response.data.isRoomPresent);
-      } catch (err) {
-        navigate('/login');
-      }
-    }
+        if (!isRoomPresent)
+          return setIsRoomPresent(false);
 
-    const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
-
-    if (roomId) {
-      setSocket(await io.connect(SOCKET_URL + '/room'));
+        setSocket(await io.connect(API_URL + '/room'));
+      }).catch(() => {
+        setIsRoomPresent(false);
+      })
     }
   }
 
@@ -70,12 +68,6 @@ function JoinRoom() {
     })
   }, [socket])
 
-  const validate = (roomId) => {
-    axios.get(API_URL + '/valid-join-room/' + roomId).then(() => {
-      navigate('/join-room/' + roomId);
-    })
-  }
-
   return (
     <>
       {
@@ -97,14 +89,14 @@ function JoinRoom() {
                   />
                 </Grid>
               </Grid>
-              <Button onClick={validate}>Enter the room</Button>
+              <Button onClick={() => { navigate('/join-room/' + details.roomId) }}>Enter the room</Button>
             </Paper>
           </div>
         )
       }
 
       {
-        roomId && socket && data && (
+        roomId && data && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'}>
@@ -136,7 +128,7 @@ function JoinRoom() {
       }
 
       {
-        roomId && isRoomPresent && denied && (
+        roomId && denied && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'} color={'red'}>
@@ -145,7 +137,7 @@ function JoinRoom() {
 
               <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
 
-              <Button onClick={() => { navigate('/join-room') }}>Click here to naivgate to home</Button>
+              <Button onClick={() => { navigate('/home') }}>Click here to naivgate to home</Button>
             </Paper>
           </div>
         )

@@ -6,5 +6,6 @@ const { profileController, homeController, gameHistoryController } = require('..
 router.get('/profile', jwtTokenVerification, profileController);
 router.get('/home', jwtTokenVerification, homeController);
 router.get('/games', jwtTokenVerification, gameHistoryController);
+router.get('/game/:gameId', jwtTokenVerification, gameHistoryController);
 
 exports.otherRouter = router;

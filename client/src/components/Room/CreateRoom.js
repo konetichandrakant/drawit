@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -12,38 +12,19 @@ function CreateRoom() {
   document.title = 'Create Room';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
-  const { roomId } = useSearchParams();
-  const [data, setData] = useState(null);
-  const [requestingUsers, setRequestingUsers] = useState(null);
-  const [acceptedUsers, setAcceptedUsers] = useState(null);
+  const { roomId } = useParams();
+  console.log(roomId);
+  const [requestingUsers, setRequestingUsers] = useState([]);
+  const [acceptedUsers, setAcceptedUsers] = useState([]);
   const [socket, setSocket] = useState(null);
-  const [isRoomPresent, setIsRoomPresent] = useState(null);
+  const [isValidUser, setIsValidUser] = useState(null);
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  const intialLoad = async () => {
-    if (roomId) {
-      try {
-        const response = await axios.get('/create-room/' + roomId, {
-          headers: {
-            Authorization: localStorage.getItem('token')
-          }
-        })
-
-        setIsRoomPresent(response.data.isRoomPresent);
-      } catch (err) {
-        navigate('/login');
-      }
-    }
-
-    const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
-    setSocket(await io.connect(SOCKET_URL + '/room'));
-  }
-
-  useEffect(async () => {
+  useEffect(() => {
 
     intialLoad();
 
@@ -52,19 +33,35 @@ function CreateRoom() {
   useEffect(() => {
     if (socket === null) return;
 
-    socket.emit(CREATE_ROOM, { roomId }, (response) => {
-      setData(response.data);
-    })
+    console.log(socket);
 
     socket.on(JOIN_ROOM_REQUEST, (response) => {
-      const { username } = response.data;
-      setRequestingUsers((prev) => { return [...prev, username] })
+      setRequestingUsers(response.data);
     })
 
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
+      setAcceptedUsers(response.data);
     })
   }, [socket])
+
+  const intialLoad = async () => {
+    console.log(localStorage.getItem('token'));
+    axios.get(API_URL + '/valid-create-room/' + roomId, {
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    }).then(async (response) => {
+      const { isValidUser } = response.data;
+      
+      if (!isValidUser)
+        return setIsValidUser(false);
+
+      setSocket(await io.connect(API_URL + '/room'));
+    }).catch(() => {
+      console.log(false);
+      setIsValidUser(false);
+    })
+  }
 
   const acceptToJoinRoom = (i) => {
     const users = [...requestingUsers];
@@ -90,11 +87,24 @@ function CreateRoom() {
     navigate('/home');
   }
 
+  const createRoom = () => {
+    axios.get(API_URL + '/create-room', {
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    }).then((response) => {
+      const { roomId } = response.data;
+      navigate('/create-room/' + roomId);
+    }).catch(() => {
+      alert('cant create room please try again!!')
+    })
+  }
+
   return (
     <>
 
       {
-        roomId && socket && data && (
+        socket && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'}>
@@ -110,7 +120,7 @@ function CreateRoom() {
               </Typography>
 
               {
-                data.requestingUsers.map((user, index) => {
+                requestingUsers.map((user, index) => {
 
                   <div>
                     <Typography textAlign={'center'}>
@@ -135,7 +145,7 @@ function CreateRoom() {
               </Typography>
 
               {
-                data.acceptedUsers.map((user, index) => {
+                acceptedUsers.map((user, index) => {
                   <div>
                     <Typography textAlign={'center'}>
                       {user.username}
@@ -155,30 +165,14 @@ function CreateRoom() {
       }
 
       {
-        roomId && isRoomPresent && (
+        isValidUser === false && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'} color={'red'}>
-                ** Room with entered ID has denied your request to join into this room **
+                ** You are not owner for this room **
               </Typography>
 
-              <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
-
-              <Button onClick={() => { navigate('/join-room') }}>Click here to naivgate to home</Button>
-            </Paper>
-          </div>
-        )
-      }
-
-      {
-        isRoomPresent === false && (
-          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-              <Typography textAlign={'center'} color={'red'}>
-                ** Room with entered ID is not present or you are not authorized **
-              </Typography>
-
-              <Button onClick={() => { navigate('/join-room') }}>Click here to create other room</Button>
+              <Button onClick={() => { createRoom() }}>Click here to create other room</Button>
 
               <Button onClick={() => { navigate('/home') }}>Click here to navigate to home</Button>
             </Paper>

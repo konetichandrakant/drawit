@@ -3,26 +3,27 @@ const app = express();
 const mongoose = require('mongoose');
 const http = require('http');
 const server = http.createServer(app);
+const cors = require('cors');
 const { authRouter } = require('./src/routes/authRoutes');
 const { otherRouter } = require('./src/routes/otherRoutes');
 const { gameRouter } = require('./src/routes/gameRoutes');
+const { validationsRouter } = require('./src/routes/validationRoutes');
 
 require('dotenv').config();
 const MONGODB_URL = process.env.MONGODB_URL;
 const CLIENT_URL = process.env.CLIENT_URL;
-const PORT = process.env.PORT;
+const SERVER_PORT = process.env.SERVER_PORT;
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', CLIENT_URL);
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT');
-  next();
-})
+app.use(cors({
+  origin: CLIENT_URL
+}));
+
 app.use(express.json());
 
 app.use(authRouter);
 app.use(otherRouter);
 app.use(gameRouter);
+app.use(validationsRouter);
 
 const start = async () => {
   try {
@@ -34,6 +35,6 @@ const start = async () => {
 
 start();
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+server.listen(SERVER_PORT, () => {
+  console.log(`Server is running on port ${SERVER_PORT}`);
 });

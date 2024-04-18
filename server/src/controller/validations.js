@@ -1,4 +1,4 @@
-const { globalState } = require('../../utils/globalState');
+const { globalState } = require('../utils/globalState');
 
 exports.validGameRoomController = (req, res) => {
   const { roomId } = req.params;
@@ -20,14 +20,15 @@ exports.validCreateRoomController = (req, res) => {
   const { userId } = req.userDetails;
 
   const roomDetails = globalState.getRoomDetailsById(roomId);
+  console.log(globalState.getAllRoomDetails(), "valid create room");
 
   if (!roomDetails)
-    return res.status(200).send({ error: true, message: 'There is no such room created!!' });
+    return res.status(404).send({ isValidUser: false });
 
   if (!(roomDetails['owner'] === userId))
-    return res.status(404).send({ message: 'You are not authorised to play the game!!' });
+    return res.status(402).send({ isValidUser: false });
 
-  return res.status(200).send(true);
+  return res.status(200).send({ isValidUser: true });
 }
 
 exports.validJoinRoomController = (req, res) => {

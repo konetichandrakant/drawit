@@ -16,8 +16,12 @@ function GameHistory() {
   }
 
   useEffect(() => {
-    if (data !== null) return;
 
+    initialLoad();
+
+  }, [])
+
+  const initialLoad = () => {
     axios.get(API_URL + '/games', {
       headers: {
         Authorization: localStorage.getItem('token')
@@ -30,14 +34,13 @@ function GameHistory() {
     }).catch(() => {
       navigate('/login');
     })
-
-  }, [])
+  }
 
   return (
     <div>
       <Header />
       {
-        !data&&(
+        !data && (
           <></>
         )
       }

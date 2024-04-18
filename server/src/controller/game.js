@@ -1,25 +1,8 @@
 const Game = require('../models/Game');
 const { globalState } = require('../utils/globalState');
 
-exports.getGameDetailsController = (req, res) => {
-  const game = Game.findById(req.params.gameId);
 
-  if (!game)
-    return res.status(404);
-
-  return res.status(200).send(game);
-}
-
-exports.postGameDetailsController = (req, res) => {
-  const game = Game.findById(req.gameId);
-
-  if (!game)
-    return res.status(404);
-
-  return res.status(200).send(game);
-}
-
-exports.getRoomIdController = (req, res) => {
+exports.createRoomController = (req, res) => {
   const { userId } = req.userDetails;
 
   if (globalState.isUserPresent(userId)) {
@@ -36,8 +19,26 @@ exports.getRoomIdController = (req, res) => {
   }
 
   globalState.setRoomDetailsById(roomId, { users: [], owner: userId });
+  console.log(globalState.getAllRoomDetails());
 
   return res.status(200).send({ roomId });
+}
+
+exports.postGameDetailsController = (req, res) => {
+  const game = Game.findById(req.gameId);
+
+  if (!game)
+    return res.status(404);
+
+  return res.status(200).send(game);
+}
+
+exports.exitGameController = (req, res) => {
+
+}
+
+exports.stopGameController = (req, res) => {
+
 }
 
 // exports.gameDetails = {};

@@ -7,12 +7,18 @@ import Typography from '@mui/material/Typography';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 
 const Profile = () => {
-  document.title='Profile';
+  document.title = 'Profile';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
   useEffect(() => {
+
+    initialLoad();
+
+  }, [])
+
+  const initialLoad = () => {
     axios.get(API_URL + '/profile', {
       headers: {
         Authorization: localStorage.getItem('token')
@@ -27,7 +33,7 @@ const Profile = () => {
       .catch(() => {
         navigate('/login');
       })
-  }, [setData, navigate])
+  }
 
   return (
     <>
