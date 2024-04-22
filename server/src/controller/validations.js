@@ -20,7 +20,6 @@ exports.validCreateRoomController = (req, res) => {
   const { userId } = req.userDetails;
 
   const roomDetails = globalState.getRoomDetailsById(roomId);
-  console.log(globalState.getAllRoomDetails(), "valid create room");
 
   if (!roomDetails)
     return res.status(404).send({ isValidUser: false });
@@ -38,10 +37,10 @@ exports.validJoinRoomController = (req, res) => {
   const roomDetails = globalState.getRoomDetailsById(roomId);
 
   if (!roomDetails)
-    return res.status(200).send({ error: true, message: 'There is no such room created!!' });
+    return res.status(404).send({ message: 'There is no such room created!!' });
 
   if (!(userId in roomDetails['users']))
-    return res.status(404).send({ message: 'You are not authorised to play the game!!' });
+    return res.status(402).send({ message: 'You are not authorised to play the game!!' });
 
-  return res.status(200).send(true);
+  return res.status(200).send({ isValidUser: true });
 }

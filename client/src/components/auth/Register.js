@@ -33,7 +33,7 @@ function Register() {
         if (!token)
           return setValid(message);
         localStorage.setItem('token', token);
-        navigate('/home');
+        navigate('/');
       })
       .catch(() => {
         return setValid('** Some error occured please try again! **');

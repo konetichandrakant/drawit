@@ -19,7 +19,6 @@ exports.createRoomController = (req, res) => {
   }
 
   globalState.setRoomDetailsById(roomId, { users: [], owner: userId });
-  console.log(globalState.getAllRoomDetails());
 
   return res.status(200).send({ roomId });
 }

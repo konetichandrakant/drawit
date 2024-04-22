@@ -1,21 +1,28 @@
 const express = require('express');
-const app = express();
+var app = require('express')();
+var http = require('http').Server(app);
 const mongoose = require('mongoose');
-const http = require('http');
-const server = http.createServer(app);
 const cors = require('cors');
 const { authRouter } = require('./src/routes/authRoutes');
 const { otherRouter } = require('./src/routes/otherRoutes');
 const { gameRouter } = require('./src/routes/gameRoutes');
 const { validationsRouter } = require('./src/routes/validationRoutes');
-
+const { gameSocket } = require('./src/socket/game');
+const { roomSocket } = require('./src/socket/room');
 require('dotenv').config();
-const MONGODB_URL = process.env.MONGODB_URL;
-const CLIENT_URL = process.env.CLIENT_URL;
-const SERVER_PORT = process.env.SERVER_PORT;
+
+const io = require('socket.io')(parseInt(process.env.SOCKET_PORT), {
+  cors: {
+    origin: [process.env.CLIENT_URL],
+    methods: ['GET', 'POST']
+  }
+});
+
+gameSocket(io);
+roomSocket(io);
 
 app.use(cors({
-  origin: CLIENT_URL
+  origin: process.env.CLIENT_URL
 }));
 
 app.use(express.json());
@@ -27,7 +34,7 @@ app.use(validationsRouter);
 
 const start = async () => {
   try {
-    await mongoose.connect(MONGODB_URL).then(() => { console.log('Connected to MongoDB!!') });
+    await mongoose.connect(process.env.MONGODB_URL).then(() => { console.log('Connected to MongoDB!!') });
   } catch (err) {
     console.log(err);
   }
@@ -35,6 +42,6 @@ const start = async () => {
 
 start();
 
-server.listen(SERVER_PORT, () => {
-  console.log(`Server is running on port ${SERVER_PORT}`);
+http.listen(parseInt(process.env.SERVER_PORT), () => {
+  console.log(`Server is running on port ${process.env.SERVER_PORT}`);
 });

@@ -1,6 +1,8 @@
-const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../../../utils/enum');
-const { globalState } = require('../../utils/globalState');
+const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../utils/constants');
+const { globalState } = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+const { Server } = require("socket.io");
 
 // {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
 // {roomId: [usersWithTheirUserId]}
@@ -8,9 +10,19 @@ const jwt = require('jsonwebtoken');
 
 let io;
 
-exports.gameSocket = (server) => {
-  io = require('socket.io')(server);
-  io = io.of('/game');
+exports.gameSocket = (io) => {
+  // io = new Server(server, {
+  //   cors: {
+  //     origin: process.env.CLIENT_URL,
+  //     methods: ['GET', 'POST']
+  //   },
+  //   transports: ["websocket", "polling"],
+  //   path: ''
+  // })
+  // io.listen(5000, () => { console.log('socket listening....') });
+  // io = io.of('/room');
+
+  // io = require('socket.io')(http);
 
   io.use((socket, next) => {
     try {
@@ -32,8 +44,10 @@ exports.gameSocket = (server) => {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.of('/game').on('connection', (socket) => {
 
+    console.log('socket connected with id: '+socket.id);
+    
     socket.on(NEXT_LEVEL, (data) => {
       const { userId } = socket.userDetails;
       const { roomId } = data;
@@ -52,8 +66,8 @@ exports.gameSocket = (server) => {
       io.to(roomId).emit(UPDATE_LEADERBOARD, { userId, score });
     })
 
-    socket.on('disconnect', (data) => {
-      console.log('user disconnected with details: ', data);
+    socket.on('disconnect', () => {
+      console.log('socket disconnected with id: ' + socket.id);
     })
 
   })

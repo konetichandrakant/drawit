@@ -1,12 +1,24 @@
-const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, ERROR } = require('../../../utils/enum');
-const { globalState } = require('../../utils/globalState');
+const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, ERROR } = require('../utils/constants');
+const { globalState } = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+// const { Server } = require("socket.io");
 
 let io;
 
-exports.roomSocket = (server) => {
-  io = require('socket.io')(server);
-  io = io.of('/room');
+exports.roomSocket = (io) => {
+  // io = new Server(server, {
+  //   cors: {
+  //     origin: process.env.CLIENT_URL,
+  //     methods: ['GET', 'POST']
+  //   },
+  //   transports: ["websocket", "polling"],
+  //   path: ''
+  // })
+  // io.listen(5000, () => { console.log('socket listening....') });
+  // io = io.of('/room');
+
+  // io = require('socket.io')(http);
 
   io.use((socket, next) => {
     try {
@@ -28,7 +40,9 @@ exports.roomSocket = (server) => {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.of('/room').on('connection', (socket) => {
+
+    console.log('socket connected with id: ' + socket.id);
 
     // After a person hits join room button the request is catched here. Here the request is sent only to the owner of the room
     socket.on(JOIN_ROOM_REQUEST, (data) => {
@@ -57,6 +71,10 @@ exports.roomSocket = (server) => {
       const username = email.split('@')[0];
 
       io.to(roomId).emit(ACCEPTED_JOIN_ROOM, { username });
+    })
+
+    socket.on('disconnect', () => {
+      console.log('socket disconnected with id: ' + socket.id);
     })
 
   })

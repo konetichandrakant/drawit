@@ -25,9 +25,6 @@ const Profile = () => {
       }
     })
       .then((res) => {
-        const { invalidUser } = res.data;
-        if (invalidUser)
-          return navigate('/login');
         setData(res.data);
       })
       .catch(() => {

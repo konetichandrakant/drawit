@@ -3,17 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import AlertTitle from '@mui/material/AlertTitle';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, CREATE_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
 
 function CreateRoom() {
   // Please enter the code as {xyz...} to enter my room. Lets DrawIt together!!
   document.title = 'Create Room';
   const API_URL = process.env.REACT_APP_API_URL;
+  const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
   const navigate = useNavigate();
   const { roomId } = useParams();
-  console.log(roomId);
   const [requestingUsers, setRequestingUsers] = useState([]);
   const [acceptedUsers, setAcceptedUsers] = useState([]);
   const [socket, setSocket] = useState(null);
@@ -52,11 +53,20 @@ function CreateRoom() {
       }
     }).then(async (response) => {
       const { isValidUser } = response.data;
-      
+
       if (!isValidUser)
         return setIsValidUser(false);
 
-      setSocket(await io.connect(API_URL + '/room'));
+      // io(API_URL + '/room', {
+      //   cors: {
+      //     origin: process.env.REACT_APP_API_URL,
+      //     methods: ['GET', 'POST']
+      //   },
+      //   transports: ["websocket", "polling"],
+      //   path: ''
+      // })
+      console.log(isValidUser);
+      setSocket(io(SOCKET_URL + '/room'));
     }).catch(() => {
       console.log(false);
       setIsValidUser(false);
@@ -84,7 +94,7 @@ function CreateRoom() {
   }
 
   const deleteRoom = () => {
-    navigate('/home');
+    navigate('/');
   }
 
   const createRoom = () => {
@@ -172,9 +182,7 @@ function CreateRoom() {
                 ** You are not owner for this room **
               </Typography>
 
-              <Button onClick={() => { createRoom() }}>Click here to create other room</Button>
-
-              <Button onClick={() => { navigate('/home') }}>Click here to navigate to home</Button>
+              <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
             </Paper>
           </div>
         )
