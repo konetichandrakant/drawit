@@ -23,25 +23,6 @@ function JoinRoom() {
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  const initialLoad = () => {
-    axios.get(API_URL + '/valid-join-room/' + roomId, {
-      headers: {
-        Authorization: localStorage.getItem('token')
-      }
-    }).then((response) => {
-      const { isRoomPresent } = response.data;
-
-      if (!isRoomPresent)
-        return setIsRoomPresent(false);
-
-      setSocket(io(SOCKET_URL + '/room'));
-
-    }).catch(() => {
-      setIsRoomPresent(false);
-    })
-
-  }
-
   useEffect(() => {
 
     initialLoad();
@@ -63,6 +44,25 @@ function JoinRoom() {
       setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
     })
   }, [socket])
+
+  const initialLoad = () => {
+    axios.get(API_URL + '/valid-join-room/' + roomId, {
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    }).then((response) => {
+      const { isRoomPresent } = response.data;
+
+      if (!isRoomPresent)
+        return setIsRoomPresent(false);
+
+      setSocket(io(SOCKET_URL + '/room'));
+
+    }).catch(() => {
+      setIsRoomPresent(false);
+    })
+
+  }
 
   return (
     <>

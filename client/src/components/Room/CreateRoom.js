@@ -13,12 +13,12 @@ function CreateRoom() {
   document.title = 'Create Room';
   const API_URL = process.env.REACT_APP_API_URL;
   const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
-  const navigate = useNavigate();
   const { roomId } = useParams();
   const [requestingUsers, setRequestingUsers] = useState([]);
   const [acceptedUsers, setAcceptedUsers] = useState([]);
   const [socket, setSocket] = useState(null);
   const [isValidUser, setIsValidUser] = useState(null);
+  const navigate = useNavigate();
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
@@ -46,8 +46,7 @@ function CreateRoom() {
   }, [socket])
 
   const intialLoad = async () => {
-    console.log(localStorage.getItem('token'));
-    axios.get(API_URL + '/valid-create-room/' + roomId, {
+    axios.get(API_URL + '/valid-created-room/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
       }
@@ -57,18 +56,8 @@ function CreateRoom() {
       if (!isValidUser)
         return setIsValidUser(false);
 
-      // io(API_URL + '/room', {
-      //   cors: {
-      //     origin: process.env.REACT_APP_API_URL,
-      //     methods: ['GET', 'POST']
-      //   },
-      //   transports: ["websocket", "polling"],
-      //   path: ''
-      // })
-      console.log(isValidUser);
       setSocket(io(SOCKET_URL + '/room'));
     }).catch(() => {
-      console.log(false);
       setIsValidUser(false);
     })
   }
@@ -94,25 +83,19 @@ function CreateRoom() {
   }
 
   const deleteRoom = () => {
-    navigate('/');
-  }
-
-  const createRoom = () => {
-    axios.get(API_URL + '/create-room', {
+    axios.delete(API_URL + '/remove-room/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
       }
-    }).then((response) => {
-      const { roomId } = response.data;
-      navigate('/create-room/' + roomId);
+    }).then(() => {
+      navigate('/');
     }).catch(() => {
-      alert('cant create room please try again!!')
+
     })
   }
 
   return (
     <>
-
       {
         socket && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>

@@ -2,27 +2,8 @@ const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../utils/constants');
 const { globalState } = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { Server } = require("socket.io");
-
-// {roomId:{levels:[[{"user1":"","score":""},{"user2":"",...}],[...]]}}
-// {roomId: [usersWithTheirUserId]}
-// {userId: userSocketId}
-
-let io;
 
 exports.gameSocket = (io) => {
-  // io = new Server(server, {
-  //   cors: {
-  //     origin: process.env.CLIENT_URL,
-  //     methods: ['GET', 'POST']
-  //   },
-  //   transports: ["websocket", "polling"],
-  //   path: ''
-  // })
-  // io.listen(5000, () => { console.log('socket listening....') });
-  // io = io.of('/room');
-
-  // io = require('socket.io')(http);
 
   io.use((socket, next) => {
     try {
@@ -46,15 +27,15 @@ exports.gameSocket = (io) => {
 
   io.of('/game').on('connection', (socket) => {
 
-    console.log('socket connected with id: '+socket.id);
-    
+    console.log('socket connected with id: ' + socket.id);
+
     socket.on(NEXT_LEVEL, (data) => {
       const { userId } = socket.userDetails;
       const { roomId } = data;
 
       const nextLevelDetails = getNextLevelDrawingItem({ gameDetails: globalState.getGameDetailsById(roomId), userId });
 
-      return socket.emit(NEXT_LEVEL, { message: 'Game completed please wait for results or exit the page to move to home screen and play new game' });
+      return socket.emit(NEXT_LEVEL, { drawingItem: nextLevelDetails });
     })
 
     socket.on(UPDATE_LEADERBOARD, (data) => {

@@ -3,7 +3,6 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
 require("dotenv").config();
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 exports.loginController = async (req, res) => {
   const { email, password } = req.body;
@@ -15,7 +14,7 @@ exports.loginController = async (req, res) => {
       return res.status(200).send({ message: '** Incorrect email or password **' });
 
     const userId = user._id.toString();
-    const token = jwt.sign({ userId, email }, JWT_SECRET_KEY, { algorithm: 'HS256' });
+    const token = jwt.sign({ userId, email }, process.env.JWT_SECRET_KEY, { algorithm: 'HS256' });
 
     return res.status(200).send({ token: `Bearer ${token}` });
   } catch (err) {
@@ -36,7 +35,7 @@ exports.registerController = async (req, res) => {
     await user.save();
 
     const userId = user._id.toString();
-    const token = jwt.sign({ userId, email }, JWT_SECRET_KEY, { algorithm: 'HS256' });
+    const token = jwt.sign({ userId, email }, process.env.JWT_SECRET_KEY, { algorithm: 'HS256' });
 
     return res.status(200).send({ token: `Bearer ${token}` });
   } catch (err) {

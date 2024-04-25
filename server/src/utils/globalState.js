@@ -56,6 +56,10 @@ class Details {
     return this.roomDetails;
   }
 
+  setRoomDetails(roomDetails) {
+    this.roomDetails = roomDetails;
+  }
+
   getGameDetailsById(roomId) {
     return this.gameDetails[roomId];
   }
@@ -68,12 +72,24 @@ class Details {
     return this.gameDetails;
   }
 
+  setGameDetails(gameDetails) {
+    this.gameDetails = gameDetails;
+  }
+
   getSocketIdByUserId(userId) {
     return this.socketDetails[userId];
   }
 
   setSocketIdByUserId(userId, socketId) {
     return this.socketDetails[userId] = socketId;
+  }
+
+  getAllSocketDetails() {
+    return this.socketDetails;
+  }
+
+  setSocketDetails(socketDetails) {
+    this.socketDetails = socketDetails;
   }
 
   isUserPresent(userId) {

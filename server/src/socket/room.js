@@ -2,24 +2,9 @@ const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, ERROR } = require('../utils/const
 const { globalState } = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-// const { Server } = require("socket.io");
-
-let io;
 
 exports.roomSocket = (io) => {
-  // io = new Server(server, {
-  //   cors: {
-  //     origin: process.env.CLIENT_URL,
-  //     methods: ['GET', 'POST']
-  //   },
-  //   transports: ["websocket", "polling"],
-  //   path: ''
-  // })
-  // io.listen(5000, () => { console.log('socket listening....') });
-  // io = io.of('/room');
-
-  // io = require('socket.io')(http);
-
+  
   io.use((socket, next) => {
     try {
       const token = socket.handshake.auth.token;
@@ -49,17 +34,13 @@ exports.roomSocket = (io) => {
       const { userId, email } = socket.userDetails;
       const { roomId } = data;
 
-      // send his/her join request to the owner
       const roomDetails = globalState.getRoomDetailsById(roomId);
 
-      if (userId in roomDetails) {
-        return socket.emit(ERROR, { message: 'You are already logged in different browser/tab please have a look at it!!' });
-      }
-
-      // sending message to owner of the room
       const ownerUserId = roomDetails['owner'];
       const ownerSocketId = socketDetails[ownerUserId];
-
+      
+      // send his/her join request to the owner
+      // sending message to owner of the room
       io.sockets.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, message: 'The user with email ' + email + ' wants to join the room' });
     })
 

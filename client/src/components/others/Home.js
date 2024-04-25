@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import AlertTitle from '@mui/material/AlertTitle';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
 import Header from './Header';
@@ -41,15 +40,23 @@ function Home() {
   }
 
   const createRoom = () => {
-    axios.get(API_URL + '/create-room', {
+    axios.get(API_URL + '/valid-creating-room', {
       headers: {
         Authorization: localStorage.getItem('token')
       }
-    }).then((response) => {
-      const { roomId } = response.data;
-      navigate('/create-room/' + roomId);
+    }).then(() => {
+      axios.get(API_URL + '/create-room', {
+        headers: {
+          Authorization: localStorage.getItem('token')
+        }
+      }).then((response) => {
+        const { roomId } = response.data;
+        navigate('/create-room/' + roomId);
+      }).catch(() => {
+        alert('Cant create room please try again!!');
+      })
     }).catch(() => {
-      alert('cant create room please try again!!')
+      alert('Cant create room because you are already in one room!!');
     })
   }
 

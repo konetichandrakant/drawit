@@ -1,6 +1,6 @@
+const User = require('../models/User');
 const Game = require('../models/Game');
 const { globalState } = require('../utils/globalState');
-
 
 exports.createRoomController = (req, res) => {
   const { userId } = req.userDetails;
@@ -23,47 +23,95 @@ exports.createRoomController = (req, res) => {
   return res.status(200).send({ roomId });
 }
 
-exports.postGameDetailsController = (req, res) => {
-  const game = Game.findById(req.gameId);
-
-  if (!game)
-    return res.status(404);
-
-  return res.status(200).send(game);
-}
-
 exports.exitGameController = (req, res) => {
+  const { roomId, gameFinished, deleteRoom } = req.params;
+
+  if (deleteRoom) {
+    const allRoomDetails = globalState.getAllGameDetails();
+
+    const roomDetails = allRoomDetails[roomId];
+
+    // Delete socket owner and the delete all members in the room present
+    const allSocketDetails = globalState.getAllSocketDetails();
+
+    const ownerId = roomDetails['owner'];
+    delete allSocketDetails[ownerId];
+
+    for (let user in roomDetails['users']) {
+      delete allSocketDetails[user];
+    }
+
+    delete allRoomDetails[roomId];
+    globalState.setSocketDetails(allSocketDetails);
+    globalState.setRoomDetails(allRoomDetails);
+
+    return res.status(200).send({ message: 'Deleted room successfully' });
+  } if (gameFinished) {
+    // First save details by room ID
+    saveGameDetailsToDB(roomId);
+
+    const allRoomDetails = globalState.getAllGameDetails();
+
+    const roomDetails = allRoomDetails[roomId];
+
+    // Delete socket owner and the delete all members in the room present
+    const allSocketDetails = globalState.getAllSocketDetails();
+
+    const ownerId = roomDetails['owner'];
+    delete allSocketDetails[ownerId];
+
+    for (let user in roomDetails['users']) {
+      delete allSocketDetails[user];
+    }
+
+    delete allRoomDetails[roomId];
+    globalState.setSocketDetails(allSocketDetails);
+    globalState.setRoomDetails(allRoomDetails);
+
+    const allGameDetails = globalState.getAllGameDetails();
+    delete allGameDetails[roomId];
+    globalState.setGameDetails(allGameDetails);
+
+    return res.status(200).send({ message: 'Saved to DB!!' });
+  }
+}
+
+// Write logic before saving to DB
+const saveGameDetailsToDB = (roomId) => {
 
 }
 
-exports.stopGameController = (req, res) => {
+exports.gameHistoryController = async (req, res) => {
+  const { userId } = req.userDetails;
+  const user = await User.findById(userId);
 
+  const { page, size } = req.query;
+  const ids = [];
+  let length = page + size < user.gameIds.length ? page + size : user.gameIds.length;
+  for (let i = page; i < length; i++)
+    ids.push(user.gameIds[i]);
+
+  const gameDetails = await Game.find({
+    '_id': {
+      $in: ids
+    }
+  });
+
+  return res.status(200).send(gameDetails);
 }
 
-// exports.gameDetails = {};
-// {
-//   roomId: {
-//     levelInformation:
-//     [
-//       {
-//         drawingItem: "",
-//         userInformation: {
-//             "userId": score,
-//         }
-//       }
-//     ]
-//   }
-// }
+exports.gameDetailsController = async (req, res) => {
+  const { userId } = req.userDetails;
+  const { gameId } = req.params;
 
-// exports.roomDetails = {};
-// {
-//   roomId: {
-//     users: [ { userId: Boolean() }]
-//     owner: userId
-//   }
-// }
+  const gamedetails = await Game.findById(gameId);
 
-// exports.socketDetails = {};
-// {
-//   userId: socketId
-// }
+  // Is the user authenticated
+  for (let userInformation in gamedetails['userInformation']) {
+    if (userId in userInformation) {
+      return res.status(200).send(gamedetails);
+    }
+  }
+
+  return res.status(401).send({ message: 'Not authorized' });
+}
