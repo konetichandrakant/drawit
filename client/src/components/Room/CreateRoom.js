@@ -8,6 +8,8 @@ import Button from '@mui/material/Button';
 import io from "socket.io-client";
 import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
 
+let socket = null;
+
 function CreateRoom() {
   // Please enter the code as {xyz...} to enter my room. Lets DrawIt together!!
   document.title = 'Create Room';
@@ -16,9 +18,11 @@ function CreateRoom() {
   const { roomId } = useParams();
   const [requestingUsers, setRequestingUsers] = useState([]);
   const [acceptedUsers, setAcceptedUsers] = useState([]);
-  const [socket, setSocket] = useState(null);
+  // const [socket, setSocket] = useState(null);
   const [isValidUser, setIsValidUser] = useState(null);
   const navigate = useNavigate();
+
+  console.log(socket);
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
@@ -29,12 +33,18 @@ function CreateRoom() {
 
     intialLoad();
 
+    return () => {
+      console.log('exited', socket);
+      if (socket) {
+        socket.disconnect(() => {
+          console.log('socket disconnected');
+        })
+      }
+    }
   }, [])
 
   useEffect(() => {
     if (socket === null) return;
-
-    console.log(socket);
 
     socket.on(JOIN_ROOM_REQUEST, (response) => {
       setRequestingUsers(response.data);
@@ -56,7 +66,9 @@ function CreateRoom() {
       if (!isValidUser)
         return setIsValidUser(false);
 
-      setSocket(io(SOCKET_URL + '/room'));
+      socket = io(SOCKET_URL + '/room');
+      console.log(socket);
+      setIsValidUser(true);
     }).catch(() => {
       setIsValidUser(false);
     })
@@ -83,21 +95,26 @@ function CreateRoom() {
   }
 
   const deleteRoom = () => {
-    axios.delete(API_URL + '/remove-room/' + roomId, {
+    axios.delete(API_URL + '/exit-game/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
+      },
+      params: {
+        deleteRoom: true
       }
     }).then(() => {
+      console.log('deleted');
       navigate('/');
     }).catch(() => {
-
+      console.log('error');
+      navigate('/');
     })
   }
 
   return (
     <>
       {
-        socket && (
+        isValidUser && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'}>
@@ -113,7 +130,7 @@ function CreateRoom() {
               </Typography>
 
               {
-                requestingUsers.map((user, index) => {
+                requestingUsers && requestingUsers.map((user, index) => {
 
                   <div>
                     <Typography textAlign={'center'}>
@@ -138,7 +155,7 @@ function CreateRoom() {
               </Typography>
 
               {
-                acceptedUsers.map((user, index) => {
+                acceptedUsers && acceptedUsers.map((user, index) => {
                   <div>
                     <Typography textAlign={'center'}>
                       {user.username}

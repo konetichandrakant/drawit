@@ -44,7 +44,8 @@ function Home() {
       headers: {
         Authorization: localStorage.getItem('token')
       }
-    }).then(() => {
+    }).then((response) => {
+      console.log(response.data);
       axios.get(API_URL + '/create-room', {
         headers: {
           Authorization: localStorage.getItem('token')
@@ -57,6 +58,20 @@ function Home() {
       })
     }).catch(() => {
       alert('Cant create room because you are already in one room!!');
+    })
+  }
+
+  const joinRoom = () => {
+    axios.get(API_URL + '/valid-joining-room', {
+      headers: {
+        Authorization: localStorage.getItem('token')
+      }
+    }).then((response) => {
+      console.log(response.data);
+      navigate('/join-room');
+    }).catch((err) => {
+      alert('You are already present in one of the game rooms, so you cant join in other');
+      console.log(err);
     })
   }
 
@@ -103,7 +118,7 @@ function Home() {
                   Play with your friends by joining in a room
                 </Typography>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/join-room')}>
+                  <Button sx={{ marginBottom: '40px' }} onClick={joinRoom}>
                     Join a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                   </Button>
                 </div>

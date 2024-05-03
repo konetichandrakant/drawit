@@ -1,13 +1,9 @@
 const User = require('../models/User');
 const Game = require('../models/Game');
-const { globalState } = require('../utils/globalState');
+const globalState = require('../utils/globalState');
 
 exports.createRoomController = (req, res) => {
   const { userId } = req.userDetails;
-
-  if (globalState.isUserPresent(userId)) {
-    return res.status(200).send({ message: 'Already created/ present in a room, so you can not create a room!!', error: true });
-  }
 
   let roomId;
 
@@ -18,59 +14,46 @@ exports.createRoomController = (req, res) => {
     }
   }
 
+  globalState.setSocketIdByUserId(userId, null);
   globalState.setRoomDetailsById(roomId, { users: [], owner: userId });
 
   return res.status(200).send({ roomId });
 }
 
 exports.exitGameController = (req, res) => {
-  const { roomId, gameFinished, deleteRoom } = req.params;
+  const { gameFinished, deleteRoom } = req.query;
+  const { roomId } = req.params;
 
   if (deleteRoom) {
-    const allRoomDetails = globalState.getAllGameDetails();
-
-    const roomDetails = allRoomDetails[roomId];
+    const roomDetails = globalState.getRoomDetailsById(roomId);
 
     // Delete socket owner and the delete all members in the room present
-    const allSocketDetails = globalState.getAllSocketDetails();
-
     const ownerId = roomDetails['owner'];
-    delete allSocketDetails[ownerId];
+    globalState.deleteSocketByUserId(ownerId);
 
-    for (let user in roomDetails['users']) {
-      delete allSocketDetails[user];
+    for (let userId in roomDetails['users']) {
+      globalState.deleteSocketByUserId(userId);
     }
 
-    delete allRoomDetails[roomId];
-    globalState.setSocketDetails(allSocketDetails);
-    globalState.setRoomDetails(allRoomDetails);
+    globalState.deleteRoomById(roomId);
 
-    return res.status(200).send({ message: 'Deleted room successfully' });
+    return res.status(200).send({ message: 'Saved to DB!!' });
   } if (gameFinished) {
     // First save details by room ID
     saveGameDetailsToDB(roomId);
 
-    const allRoomDetails = globalState.getAllGameDetails();
-
-    const roomDetails = allRoomDetails[roomId];
+    const roomDetails = globalState.getRoomDetailsById(roomId);
 
     // Delete socket owner and the delete all members in the room present
-    const allSocketDetails = globalState.getAllSocketDetails();
-
     const ownerId = roomDetails['owner'];
-    delete allSocketDetails[ownerId];
+    globalState.deleteSocketByUserId(ownerId);
 
-    for (let user in roomDetails['users']) {
-      delete allSocketDetails[user];
+    for (let userId in roomDetails['users']) {
+      globalState.deleteSocketByUserId(userId);
     }
 
-    delete allRoomDetails[roomId];
-    globalState.setSocketDetails(allSocketDetails);
-    globalState.setRoomDetails(allRoomDetails);
-
-    const allGameDetails = globalState.getAllGameDetails();
-    delete allGameDetails[roomId];
-    globalState.setGameDetails(allGameDetails);
+    globalState.deleteRoomById(roomId);
+    globalState.deleteGameById(roomId);
 
     return res.status(200).send({ message: 'Saved to DB!!' });
   }
@@ -85,19 +68,26 @@ exports.gameHistoryController = async (req, res) => {
   const { userId } = req.userDetails;
   const user = await User.findById(userId);
 
-  const { page, size } = req.query;
+  const { page, limit } = req.query;
   const ids = [];
-  let length = page + size < user.gameIds.length ? page + size : user.gameIds.length;
+  let length = page + limit < user.gameIds.length ? page + limit : user.gameIds.length;
   for (let i = page; i < length; i++)
     ids.push(user.gameIds[i]);
 
-  const gameDetails = await Game.find({
-    '_id': {
-      $in: ids
-    }
-  });
+  try {
 
-  return res.status(200).send(gameDetails);
+    console.log(ids);
+    const gameDetails = await Game.find({
+      _id: {
+        $in: ids
+      }
+    });
+
+    return res.status(200).send(gameDetails);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send({ message: 'Some error occured' });
+  }
 }
 
 exports.gameDetailsController = async (req, res) => {

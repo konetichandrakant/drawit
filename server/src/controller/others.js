@@ -1,7 +1,7 @@
 const User = require('../models/User');
 
 exports.homeController = async (req, res) => {
-  const { userId, email } = req.userDetails;
+  const { userId } = req.userDetails;
   const user = await User.findById(userId);
 
   return res.status(200).send({ noOfGamesPlayed: user.gameIds.length });

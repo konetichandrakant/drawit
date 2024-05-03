@@ -8,6 +8,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 let pageDetails = { page: 0, limit: 10 }
 
 function GameHistory() {
+  document.title = 'Past Games';
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -28,12 +29,14 @@ function GameHistory() {
         limit: pageDetails.limit
       }
     }).then((res) => {
+      console.log(res.data);
       if (res.data.length < pageDetails.limit) setHasMore(false);
 
       pageDetails = { ...pageDetails, page: pageDetails.page + 1 };
-      data.concat(res.data);
-      setData(data);
-    }).catch(() => {
+
+      setData((prev) => [...(prev === null ? [] : prev), ...res.data]);
+    }).catch((err) => {
+      console.log(err);
       navigate('/login');
     })
   }

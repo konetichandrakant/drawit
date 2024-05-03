@@ -1,10 +1,10 @@
 const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, ERROR } = require('../utils/constants');
-const { globalState } = require('../utils/globalState');
+const globalState = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 exports.roomSocket = (io) => {
-  
+
   io.use((socket, next) => {
     try {
       const token = socket.handshake.auth.token;
@@ -27,6 +27,9 @@ exports.roomSocket = (io) => {
 
   io.of('/room').on('connection', (socket) => {
 
+    // const { userId } = socket.userDetails;
+    // globalState.setSocketIdByUserId(userId, socket.id);
+
     console.log('socket connected with id: ' + socket.id);
 
     // After a person hits join room button the request is catched here. Here the request is sent only to the owner of the room
@@ -38,10 +41,10 @@ exports.roomSocket = (io) => {
 
       const ownerUserId = roomDetails['owner'];
       const ownerSocketId = socketDetails[ownerUserId];
-      
+
       // send his/her join request to the owner
       // sending message to owner of the room
-      io.sockets.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, message: 'The user with email ' + email + ' wants to join the room' });
+      socket.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, message: 'The user with email ' + email + ' wants to join the room' });
     })
 
     // After accepting the person the request is sent to the server and caught here. Moreover, we should send the admitted person details to all members in the group

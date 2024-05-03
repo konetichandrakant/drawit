@@ -27,9 +27,8 @@
 // }
 
 class Details {
-
   constructor() {
-    if (Details.instance == null) {
+    if (!Details.instance) {
       this.gameDetails = {};
       this.roomDetails = {};
       this.socketDetails = {};
@@ -37,11 +36,7 @@ class Details {
       Details.instance = this;
     }
 
-    return Details.instance
-  }
-
-  isRoomPresent(roomId) {
-    return roomId in this.roomDetails;
+    return Details.instance;
   }
 
   getRoomDetailsById(roomId) {
@@ -52,12 +47,12 @@ class Details {
     this.roomDetails[roomId] = data;
   }
 
-  getAllRoomDetails() {
-    return this.roomDetails;
+  isRoomPresent(roomId) {
+    return roomId in this.roomDetails;
   }
 
-  setRoomDetails(roomDetails) {
-    this.roomDetails = roomDetails;
+  deleteRoomById(roomId) {
+    delete this.roomDetails[roomId];
   }
 
   getGameDetailsById(roomId) {
@@ -68,37 +63,28 @@ class Details {
     this.gameDetails[roomId] = data;
   }
 
-  getAllGameDetails() {
-    return this.gameDetails;
+  deleteGameById(roomId) {
+    delete this.gameDetails[roomId];
   }
 
-  setGameDetails(gameDetails) {
-    this.gameDetails = gameDetails;
-  }
-
-  getSocketIdByUserId(userId) {
+  getSocketByUserId(userId) {
     return this.socketDetails[userId];
   }
 
   setSocketIdByUserId(userId, socketId) {
-    return this.socketDetails[userId] = socketId;
-  }
-
-  getAllSocketDetails() {
-    return this.socketDetails;
-  }
-
-  setSocketDetails(socketDetails) {
-    this.socketDetails = socketDetails;
+    this.socketDetails[userId] = socketId;
   }
 
   isUserPresent(userId) {
     return userId in this.socketDetails;
   }
 
+  deleteSocketByUserId(userId) {
+    delete this.socketDetails[userId];
+  }
+
 }
 
-var detailsObject = new Details();
-Object.freeze(detailsObject);
+const detailsObject = new Details();
 
-exports.globalState = detailsObject;
+module.exports = detailsObject;

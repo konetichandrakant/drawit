@@ -13,7 +13,7 @@ function Header({ profile }) {
       {
         !profile && (
           <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-between' }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => { console.log('profile'); navigate('/profile'); }}>
+            <span style={{ cursor: 'pointer' }} onClick={() => { navigate('/profile'); }}>
               <PersonOutlineIcon sx={{ height: '50px', width: '50px' }} />
             </span>
             <img src={drawitLogo} />

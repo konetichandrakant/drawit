@@ -8,7 +8,7 @@ import DrawingArea from './DrawingArea';
 
 let level = 0;
 
-function Game({ drawItem }) {
+function Game() {
   document.title = 'Game';
   const API_URL = process.env.REACT_APP_API_URL;
   const { roomId } = useParams();
@@ -27,7 +27,6 @@ function Game({ drawItem }) {
       .then((res) => {
         setDrawingItem(res.data.drawingItem);
         dimensionsHandler();
-        console.log(res);
       })
       .catch((err) => {
         console.log(err);

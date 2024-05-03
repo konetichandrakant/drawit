@@ -5,7 +5,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Profile from './components/others/Profile';
 import Game from './components/game/Game';
-import GameHistory from './components/others/Games';
+import GameHistory from './components/others/GameHistory';
 import CreateRoom from './components/room/CreateRoom';
 import JoinRoomInput from './components/room/JoinRoomInput';
 import JoinRoom from './components/room/JoinRoom';

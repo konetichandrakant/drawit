@@ -7,6 +7,8 @@ import Button from '@mui/material/Button';
 import io from "socket.io-client";
 import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
 
+let socket = null;
+
 function JoinRoom() {
   document.title = 'Join Room';
   const API_URL = process.env.REACT_APP_API_URL;
@@ -14,8 +16,8 @@ function JoinRoom() {
   const navigate = useNavigate();
   const { roomId } = useParams();
   const [data, setData] = useState(null);
-  const [socket, setSocket] = useState(null);
   const [denied, setDenied] = useState(null);
+  const [isValidUser, setIsvalidUser] = useState(null);
   const [isRoomPresent, setIsRoomPresent] = useState(null);
 
   // Before joining into room validate the roomId
@@ -27,18 +29,20 @@ function JoinRoom() {
 
     initialLoad();
 
+    return () => {
+      if (socket) {
+        socket.disconnect(() => {
+          console.log('socket disconnected');
+        })
+      }
+    }
+
   }, [])
 
   useEffect(() => {
     if (socket === null) return;
 
-    socket.emit(JOIN_ROOM_REQUEST, { roomId }, (response) => {
-      if (response.success) {
-        setData(response.data);
-      } else {
-        setDenied(true);
-      }
-    })
+    socket.emit(JOIN_ROOM_REQUEST, { roomId });
 
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
       setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
@@ -46,20 +50,21 @@ function JoinRoom() {
   }, [socket])
 
   const initialLoad = () => {
-    axios.get(API_URL + '/valid-join-room/' + roomId, {
+    axios.get(API_URL + '/valid-joined-room/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
       }
     }).then((response) => {
-      const { isRoomPresent } = response.data;
-
-      if (!isRoomPresent)
-        return setIsRoomPresent(false);
-
-      setSocket(io(SOCKET_URL + '/room'));
-
-    }).catch(() => {
-      setIsRoomPresent(false);
+      console.log(response.data);
+      setData(response.data);
+      socket = io(SOCKET_URL + '/room');
+      console.log(socket);
+    }).catch((err) => {
+      if (err.response.status === 403) {
+        setIsvalidUser(false);
+      } else {
+        setIsRoomPresent(false);
+      }
     })
 
   }
@@ -99,7 +104,7 @@ function JoinRoom() {
       }
 
       {
-        !data && !denied && (
+        isValidUser === null && isRoomPresent === null && !data && !denied && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'} color={'red'}>
@@ -139,6 +144,20 @@ function JoinRoom() {
               </Typography>
 
               <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
+
+              <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
+            </Paper>
+          </div>
+        )
+      }
+
+      {
+        isValidUser === false && (
+          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
+              <Typography textAlign={'center'} color={'red'}>
+                ** You are not allowed to enter into this room because you are alredy present in one of the rooms **
+              </Typography>
 
               <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
             </Paper>

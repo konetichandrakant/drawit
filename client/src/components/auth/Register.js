@@ -16,7 +16,6 @@ function Register() {
   document.title = 'Register';
   const navigate = useNavigate();
   const [valid, setValid] = useState(null);
-  window.title = 'Login';
 
   const onSubmit = () => {
     if (details.password !== details.confirmPassword)
