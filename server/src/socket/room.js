@@ -1,4 +1,4 @@
-const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, ERROR } = require('../utils/constants');
+const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM } = require('../utils/constants');
 const globalState = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -10,18 +10,15 @@ exports.roomSocket = (io) => {
       const token = socket.handshake.auth.token;
 
       if (!token || !token.startsWith('Bearer ')) {
-        return new Error('Invalid token');
+        return next(new Error('Invalid token format')); // More specific error message
       }
 
-      try {
-        const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
-        socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY); // Replace with your secret key
-        next();
-      } catch {
-        return new Error('Invalid token');
-      }
+      const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
+      socket.userDetails = jwt.verify(authToken, process.env.JWT_SECRET_KEY);
+      console.log('User connected with ID:', socket.id); // Log only user ID or a success message
+      next();
     } catch (err) {
-      return err;
+      return next(new Error('Unauthorized')); // Generic error message for the client
     }
   });
 
@@ -34,13 +31,15 @@ exports.roomSocket = (io) => {
 
     // After a person hits join room button the request is catched here. Here the request is sent only to the owner of the room
     socket.on(JOIN_ROOM_REQUEST, (data) => {
-      const { userId, email } = socket.userDetails;
+      // const { userId, email } = socket.userDetails;
+      const userId = null;
+      const email = null;
       const { roomId } = data;
 
       const roomDetails = globalState.getRoomDetailsById(roomId);
 
       const ownerUserId = roomDetails['owner'];
-      const ownerSocketId = socketDetails[ownerUserId];
+      const ownerSocketId = globalState.getSocketByUserId(ownerUserId);
 
       // send his/her join request to the owner
       // sending message to owner of the room

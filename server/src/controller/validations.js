@@ -10,7 +10,7 @@ exports.validGameRoomController = (req, res) => {
   if (!(userId in roomDetails['users']) && !(roomDetails['owner'] === userId))
     return res.status(401).send({ message: 'You are not authorised to play the game!!' });
 
-  return res.status(200).send({ isValidUser: true });
+  return res.status(200).send(true);
 }
 
 exports.validCreatingRoomController = (req, res) => {
@@ -19,27 +19,25 @@ exports.validCreatingRoomController = (req, res) => {
   if (globalState.isUserPresent(userId))
     return res.status(403).send({ message: 'You are already present in other room or game' });
 
-  return res.status(200).send({ message: 'room can be created' });
+  return res.status(200).send(true);
 }
 
 exports.validCreatedRoomController = (req, res) => {
   const { roomId } = req.params;
   const { userId } = req.userDetails;
 
-  const roomDetails = globalState.getRoomDetailsById(roomId);
-
-  if (!roomDetails)
+  if (!globalState.isRoomPresent(roomId))
     return res.status(404).send({ message: 'Page not found' });
 
-  if (!(roomDetails['owner'] === userId))
-    return res.status(401).send({ message: 'You are not authorized' });
+  if (!(globalState.getRoomDetailsById(roomId)['owner'] === userId))
+    return res.status(403).send({ message: 'You are not authorized' });
 
-  return res.status(200).send({ isValidUser: true });
+  return res.status(200).send(true);
 }
 
 exports.validJoiningRoomController = (req, res) => {
   const { roomId } = req.params;
-  const { userId } = req.userDetails;
+  const { userId, email } = req.userDetails;
 
   if (roomId) {
     if (globalState.isUserPresent(userId))
@@ -48,7 +46,16 @@ exports.validJoiningRoomController = (req, res) => {
     if (!globalState.isRoomPresent(roomId))
       return res.status(404).send({ message: 'Page not found' });
 
-    return res.status(200).send({ isValidUser: true });
+    const roomDetails = globalState.getRoomDetailsById(roomId);
+    roomDetails['users'].push(userId);
+    globalState.setRoomDetailsById(roomId, roomDetails);
+
+    const username = email.split('@')[0];
+    globalState.setSocketIdByUserId(userId, { username, socketId: null });
+
+    console.log(globalState.getSocketByUserId(userId));
+
+    return res.status(200).send(true);
   } else {
     if (globalState.isUserPresent(userId))
       return res.status(403).send({ message: 'You are already in one of the game rooms' });
@@ -65,8 +72,16 @@ exports.validJoinedRoomController = (req, res) => {
   if (!globalState.isRoomPresent(roomId))
     return res.status(404).send({ message: 'Page not found' });
 
-  if (!(userId in globalState.getRoomDetailsById(roomId)['users']))
+  if (!(globalState.getRoomDetailsById(roomId)['users'].includes(userId)))
     return res.status(403).send({ message: 'You are not authorised to play the game' });
 
-  return res.status(200).send({ isValidUser: true });
+  const roomDetails = globalState.getRoomDetailsById(roomId);
+
+  let others = [];
+
+  for (let i in roomDetails['users']) {
+    others.push(globalState.getSocketByUserId(roomDetails['users'][i])['username']);
+  }
+
+  return res.status(200).send({ owner: globalState.getSocketByUserId(roomDetails['owner'])['username'], others });
 }

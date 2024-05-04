@@ -23,7 +23,7 @@
 
 // exports.socketDetails = {};
 // {
-//   userId: socketId
+//   userId: socketId, username
 // }
 
 class Details {

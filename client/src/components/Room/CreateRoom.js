@@ -7,6 +7,7 @@ import AlertTitle from '@mui/material/AlertTitle';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
 import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
+import Header from '../others/Header';
 
 let socket = null;
 
@@ -21,8 +22,6 @@ function CreateRoom() {
   // const [socket, setSocket] = useState(null);
   const [isValidUser, setIsValidUser] = useState(null);
   const navigate = useNavigate();
-
-  console.log(socket);
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
@@ -60,15 +59,13 @@ function CreateRoom() {
       headers: {
         Authorization: localStorage.getItem('token')
       }
-    }).then(async (response) => {
-      const { isValidUser } = response.data;
-
-      if (!isValidUser)
-        return setIsValidUser(false);
-
-      socket = io(SOCKET_URL + '/room');
-      console.log(socket);
-      setIsValidUser(true);
+    }).then((response) => {
+      socket = io(SOCKET_URL + '/room', {
+        auth: {
+          token: localStorage.getItem('token') // Include token in query string
+        }
+      });
+      setIsValidUser(response.data);
     }).catch(() => {
       setIsValidUser(false);
     })
@@ -98,8 +95,7 @@ function CreateRoom() {
     axios.delete(API_URL + '/exit-game/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
-      },
-      params: {
+      }, params: {
         deleteRoom: true
       }
     }).then(() => {
@@ -113,6 +109,18 @@ function CreateRoom() {
 
   return (
     <>
+      {
+        isValidUser !== null && (
+          <Header />
+        )
+      }
+
+      {
+        isValidUser === null && (
+          <>Loading....</>
+        )
+      }
+
       {
         isValidUser && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
@@ -168,7 +176,7 @@ function CreateRoom() {
                 })
               }
 
-              <Button onClick={() => { deleteRoom() }}>Delete this room</Button>
+              <Button onClick={deleteRoom}>Delete this room</Button>
             </Paper>
           </div>
         )

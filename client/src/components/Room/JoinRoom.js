@@ -5,14 +5,17 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST } from '../../utils/constants';
 
-let socket = null;
+let socket = io(process.env.REACT_APP_SOCKET_URL + '/room', {
+  auth: {
+    token: localStorage.getItem('token') // Include token in query string
+  }
+});
 
 function JoinRoom() {
   document.title = 'Join Room';
   const API_URL = process.env.REACT_APP_API_URL;
-  const SOCKET_URL = process.env.SOCKET_URL;
   const navigate = useNavigate();
   const { roomId } = useParams();
   const [data, setData] = useState(null);
@@ -27,26 +30,30 @@ function JoinRoom() {
 
   useEffect(() => {
 
-    initialLoad();
+    if (data === null) {
+      initialLoad();
+    }
+
+    socket.emit(JOIN_ROOM_REQUEST, { roomId });
+
+    socket.on(DENY_REQUEST, (response) => {
+      setDenied(response.data);
+    })
+
+    socket.on(ACCEPTED_JOIN_ROOM, (response) => {
+      setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
+    })
 
     return () => {
-      if (socket) {
-        socket.disconnect(() => {
-          console.log('socket disconnected');
-        })
-      }
+      if (denied !== null)
+        socket.off(DENY_REQUEST);
+      socket.off(JOIN_ROOM_REQUEST);
     }
 
   }, [])
 
   useEffect(() => {
-    if (socket === null) return;
 
-    socket.emit(JOIN_ROOM_REQUEST, { roomId });
-
-    socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
-    })
   }, [socket])
 
   const initialLoad = () => {
@@ -55,18 +62,16 @@ function JoinRoom() {
         Authorization: localStorage.getItem('token')
       }
     }).then((response) => {
-      console.log(response.data);
       setData(response.data);
-      socket = io(SOCKET_URL + '/room');
-      console.log(socket);
+
     }).catch((err) => {
+
       if (err.response.status === 403) {
         setIsvalidUser(false);
       } else {
         setIsRoomPresent(false);
       }
     })
-
   }
 
   return (
@@ -80,7 +85,7 @@ function JoinRoom() {
               </Typography>
 
               <Typography textAlign={'center'}>
-                {data.owner.username}
+                {data.owner}
               </Typography>
 
               <Typography textAlign={'center'}>
@@ -90,7 +95,7 @@ function JoinRoom() {
               {
                 data.others.map((user) => {
                   <Typography textAlign={'center'}>
-                    {user.username}
+                    {user}
                   </Typography>
                 })
               }
@@ -156,7 +161,7 @@ function JoinRoom() {
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'} color={'red'}>
-                ** You are not allowed to enter into this room because you are alredy present in one of the rooms **
+                ** You are not allowed to enter into this room because you are already present in one of the rooms **
               </Typography>
 
               <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>

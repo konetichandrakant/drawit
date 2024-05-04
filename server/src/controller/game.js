@@ -3,7 +3,7 @@ const Game = require('../models/Game');
 const globalState = require('../utils/globalState');
 
 exports.createRoomController = (req, res) => {
-  const { userId } = req.userDetails;
+  const { userId, email } = req.userDetails;
 
   let roomId;
 
@@ -14,7 +14,9 @@ exports.createRoomController = (req, res) => {
     }
   }
 
-  globalState.setSocketIdByUserId(userId, null);
+  const username = email.split('@')[0];
+
+  globalState.setSocketIdByUserId(userId, { username, socketId: null });
   globalState.setRoomDetailsById(roomId, { users: [], owner: userId });
 
   return res.status(200).send({ roomId });
@@ -23,6 +25,8 @@ exports.createRoomController = (req, res) => {
 exports.exitGameController = (req, res) => {
   const { gameFinished, deleteRoom } = req.query;
   const { roomId } = req.params;
+
+  console.log(req.params, req.query);
 
   if (deleteRoom) {
     const roomDetails = globalState.getRoomDetailsById(roomId);

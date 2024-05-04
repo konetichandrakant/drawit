@@ -45,7 +45,6 @@ function Home() {
         Authorization: localStorage.getItem('token')
       }
     }).then((response) => {
-      console.log(response.data);
       axios.get(API_URL + '/create-room', {
         headers: {
           Authorization: localStorage.getItem('token')

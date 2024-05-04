@@ -7,7 +7,7 @@ exports.gameSocket = (io) => {
 
   io.use((socket, next) => {
     try {
-      const token = socket.handshake.auth.token;
+      const token = socket.auth.token;
 
       if (!token || !token.startsWith('Bearer ')) {
         return new Error('Invalid token');
@@ -16,6 +16,7 @@ exports.gameSocket = (io) => {
       try {
         const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
         socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY); // Replace with your secret key
+        console.log(socket.userDetails);
         next();
       } catch {
         return new Error('Invalid token');
