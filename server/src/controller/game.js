@@ -26,8 +26,6 @@ exports.exitGameController = (req, res) => {
   const { gameFinished, deleteRoom } = req.query;
   const { roomId } = req.params;
 
-  console.log(req.params, req.query);
-
   if (deleteRoom) {
     const roomDetails = globalState.getRoomDetailsById(roomId);
 
@@ -79,8 +77,6 @@ exports.gameHistoryController = async (req, res) => {
     ids.push(user.gameIds[i]);
 
   try {
-
-    console.log(ids);
     const gameDetails = await Game.find({
       _id: {
         $in: ids
@@ -89,7 +85,6 @@ exports.gameHistoryController = async (req, res) => {
 
     return res.status(200).send(gameDetails);
   } catch (e) {
-    console.log(e);
     return res.status(500).send({ message: 'Some error occured' });
   }
 }

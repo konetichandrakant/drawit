@@ -38,4 +38,4 @@ function Header({ profile }) {
   )
 }
 
-export default Header
+export default Header;

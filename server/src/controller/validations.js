@@ -53,8 +53,6 @@ exports.validJoiningRoomController = (req, res) => {
     const username = email.split('@')[0];
     globalState.setSocketIdByUserId(userId, { username, socketId: null });
 
-    console.log(globalState.getSocketByUserId(userId));
-
     return res.status(200).send(true);
   } else {
     if (globalState.isUserPresent(userId))

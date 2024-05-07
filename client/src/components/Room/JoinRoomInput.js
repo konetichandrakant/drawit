@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
+import Header from '../others/Header';
 
 let roomId;
 
@@ -24,8 +24,7 @@ function JoinRoomInput() {
       headers: {
         Authorization: localStorage.getItem('token')
       }
-    }).then((response) => {
-      console.log(response.data);
+    }).then(() => {
       navigate('/join-room/' + roomId);
     }).catch((err) => {
       if (err.response.status === 403) {
@@ -37,42 +36,48 @@ function JoinRoomInput() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-      <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-        <Typography textAlign={'center'}>
-          Please enter the room ID to join the room. Also, please wait until the owner of the room gives some response to your request!!
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
+    <>
+      <Header />
+
+      <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+        <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto', width: '400px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography textAlign={'center'} sx={{ marginBottom: '20px' }}>
+              <b>Enter the <span style={{ color: 'blue' }}>ROOM-ID</span> to join the room</b>
+            </Typography>
+
             <TextField
               type="text"
               label="Room ID"
               variant="outlined"
               onChange={(e) => { roomId = e.target.value }}
-              fullWidth
               required
             />
-          </Grid>
-        </Grid>
-        <Button onClick={joinRoom}>Enter the room</Button>
-      </Paper>
 
-      {
-        isValidUser === false && (
-          <Typography color={'red'} textAlign={'center'}>
-            *** Already present in one of the rooms cant be added into this room ***
-          </Typography>
-        )
-      }
+            {
+              isValidUser === false && (
+                <Typography color={'red'} textAlign={'center'} sx={{ marginTop: '10px' }}>
+                  *** Already present in one of the rooms ***
+                </Typography>
+              )
+            }
 
-      {
-        isRoomPresent === false && (
-          <Typography color={'red'} textAlign={'center'}>
-            *** No such room is present please enter a valid Room ID ***
-          </Typography>
-        )
-      }
-    </div>
+            {
+              isRoomPresent === false && (
+                <Typography color={'red'} textAlign={'center'} sx={{ marginTop: '10px' }}>
+                  *** Enter a valid Room ID ***
+                </Typography>
+              )
+            }
+
+            <Button sx={{ marginTop: '20px' }} onClick={joinRoom}>Enter the room</Button>
+
+          </div>
+        </Paper>
+
+
+      </div>
+    </>
   )
 }
 

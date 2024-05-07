@@ -95,4 +95,4 @@ function GameHistory() {
   )
 }
 
-export default GameHistory
+export default GameHistory;

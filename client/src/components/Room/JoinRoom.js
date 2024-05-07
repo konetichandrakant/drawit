@@ -7,12 +7,6 @@ import Button from '@mui/material/Button';
 import io from "socket.io-client";
 import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST } from '../../utils/constants';
 
-let socket = io(process.env.REACT_APP_SOCKET_URL + '/room', {
-  auth: {
-    token: localStorage.getItem('token') // Include token in query string
-  }
-});
-
 function JoinRoom() {
   document.title = 'Join Room';
   const API_URL = process.env.REACT_APP_API_URL;
@@ -21,6 +15,7 @@ function JoinRoom() {
   const [data, setData] = useState(null);
   const [denied, setDenied] = useState(null);
   const [isValidUser, setIsvalidUser] = useState(null);
+  const [socket, setSocket] = useState(null);
   const [isRoomPresent, setIsRoomPresent] = useState(null);
 
   // Before joining into room validate the roomId
@@ -34,6 +29,21 @@ function JoinRoom() {
       initialLoad();
     }
 
+    return () => {
+      if (socket) {
+        socket.disconnect(() => {
+          console.log('socket disconnected');
+        })
+      }
+    }
+
+  }, [])
+
+  useEffect(() => {
+    if (socket === null) return;
+
+    console.log(socket);
+
     socket.emit(JOIN_ROOM_REQUEST, { roomId });
 
     socket.on(DENY_REQUEST, (response) => {
@@ -43,17 +53,6 @@ function JoinRoom() {
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
       setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
     })
-
-    return () => {
-      if (denied !== null)
-        socket.off(DENY_REQUEST);
-      socket.off(JOIN_ROOM_REQUEST);
-    }
-
-  }, [])
-
-  useEffect(() => {
-
   }, [socket])
 
   const initialLoad = () => {
@@ -64,8 +63,14 @@ function JoinRoom() {
     }).then((response) => {
       setData(response.data);
 
+      setSocket(
+        io(process.env.REACT_APP_SOCKET_URL + '/room', {
+          query: {
+            token: localStorage.getItem('token') // Include token in query string
+          }
+        })
+      )
     }).catch((err) => {
-
       if (err.response.status === 403) {
         setIsvalidUser(false);
       } else {
@@ -78,32 +83,30 @@ function JoinRoom() {
     <>
       {
         data && (
-          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-              <Typography textAlign={'center'}>
-                Owner
-              </Typography>
+          <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
+            <Typography textAlign={'center'} sx={{ margin: '5px' }}>
+              <b>Owner</b>
+            </Typography>
 
-              <Typography textAlign={'center'}>
-                {data.owner}
-              </Typography>
+            <Typography textAlign={'center'} sx={{ margin: '3px' }}>
+              {data.owner}
+            </Typography>
 
-              <Typography textAlign={'center'}>
-                Other users
-              </Typography>
+            <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
+              <b>Other users</b>
+            </Typography>
 
-              {
-                data.others.map((user) => {
-                  <Typography textAlign={'center'}>
-                    {user}
-                  </Typography>
-                })
-              }
+            {
+              data.others.map((user) => {
+                <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
+                  {user}
+                </Typography>
+              })
+            }
 
-              <Button onClick={() => { navigate('/join-room') }}>Exit this room and join other room</Button>
+            <Button onClick={() => { navigate('/join-room') }}>Exit this room and join other room</Button>
 
-              <Button onClick={() => { navigate('/') }}>Exit this room and go to home</Button>
-            </Paper>
+            <Button onClick={() => { navigate('/') }}>Exit this room and go to home</Button>
           </div>
         )
       }

@@ -33,11 +33,16 @@ function Login() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-      <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <img src={drawitLogo} alt={'drawit logo'} style={{ maxHeight: '15vh', maxWidth: '15vw' }} />
-        </div>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'space-around', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+        <img src={drawitLogo} alt={'drawit logo'} style={{ maxHeight: '15vh', maxWidth: '15vw' }} />
+        <Typography sx={{ width: '500px' }}>
+          <b>
+            DrawIt helps to improve your drawing skills and gives you the best experience in the field of drawing
+          </b>
+        </Typography>
+      </div>
+      <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <TextField
@@ -68,13 +73,17 @@ function Login() {
             </Typography>
           )
         }
-
-        <div style={{ display: 'flex', justifyContent: 'space-evenly' }}>
-          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, width: '40%' }} onClick={onSubmit} >
-            Login
+        <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', margin: '10px', marginTop: '20px' }}>
+          <Button type="submit" variant="contained" onClick={onSubmit} sx={{ width: '300px', backgroundColor: '#0866ff' }} >
+            Log in
           </Button>
-          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, width: '40%' }} onClick={() => { navigate('/register') }} >
-            Register
+        </div>
+
+        <hr />
+
+        <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', margin: '10px' }}>
+          <Button type="submit" variant="contained" onClick={() => { navigate('/register') }} sx={{ backgroundColor: '#42b72a' }}>
+            Create new account
           </Button>
         </div>
       </Paper>

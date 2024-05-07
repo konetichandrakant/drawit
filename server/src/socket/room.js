@@ -15,7 +15,6 @@ exports.roomSocket = (io) => {
 
       const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
       socket.userDetails = jwt.verify(authToken, process.env.JWT_SECRET_KEY);
-      console.log('User connected with ID:', socket.id); // Log only user ID or a success message
       next();
     } catch (err) {
       return next(new Error('Unauthorized')); // Generic error message for the client
@@ -24,13 +23,11 @@ exports.roomSocket = (io) => {
 
   io.of('/room').on('connection', (socket) => {
 
-    // const { userId } = socket.userDetails;
-    // globalState.setSocketIdByUserId(userId, socket.id);
-
     console.log('socket connected with id: ' + socket.id);
 
     // After a person hits join room button the request is catched here. Here the request is sent only to the owner of the room
     socket.on(JOIN_ROOM_REQUEST, (data) => {
+      console.log(data);
       // const { userId, email } = socket.userDetails;
       const userId = null;
       const email = null;
@@ -43,7 +40,7 @@ exports.roomSocket = (io) => {
 
       // send his/her join request to the owner
       // sending message to owner of the room
-      socket.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, message: 'The user with email ' + email + ' wants to join the room' });
+      socket.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, email, message: 'The user with email ' + email + ' wants to join the room' });
     })
 
     // After accepting the person the request is sent to the server and caught here. Moreover, we should send the admitted person details to all members in the group
