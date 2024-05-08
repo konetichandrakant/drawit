@@ -51,7 +51,7 @@ exports.validJoiningRoomController = (req, res) => {
     globalState.setRoomDetailsById(roomId, roomDetails);
 
     const username = email.split('@')[0];
-    globalState.setSocketIdByUserId(userId, { username, socketId: null });
+    globalState.setSocketDetailsByUserId(userId, { username, socketId: null });
 
     return res.status(200).send(true);
   } else {

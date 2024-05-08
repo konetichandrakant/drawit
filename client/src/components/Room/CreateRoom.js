@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, ROOM_CREATED, GET_ALL_DATA } from '../../utils/constants';
 import Header from '../others/Header';
 
 function CreateRoom() {
@@ -42,13 +42,15 @@ function CreateRoom() {
   useEffect(() => {
     if (socket === null) return;
 
+    socket.emit(ROOM_CREATED, null);
+
     socket.on(JOIN_ROOM_REQUEST, (response) => {
       console.log(response);
-      setRequestingUsers(response.data);
+      setRequestingUsers((prev) => { return prev === null ? [response] : [...prev, response] });
     })
 
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      setAcceptedUsers(response.data);
+      setAcceptedUsers((prev) => { return prev === null ? [response] : [...prev, response] });
     })
   }, [socket])
 
@@ -62,7 +64,7 @@ function CreateRoom() {
 
       setSocket(
         io(SOCKET_URL + '/room', {
-          query: {
+          auth: {
             token: localStorage.getItem('token') // Include token in query string
           }
         })
@@ -74,14 +76,14 @@ function CreateRoom() {
 
   const acceptToJoinRoom = (i) => {
     const users = [...requestingUsers];
-    const username = users[i];
+    setAcceptedUsers((prev) => { return prev === null ? [users[i]] : [...prev, users[i]] });
     users.splice(i, 1);
     setRequestingUsers(users);
-    setAcceptedUsers((prev) => { return [...prev, username] });
   }
 
   const denyToJoinRoom = (i) => {
     const users = [...requestingUsers];
+    socket.emit(DENY_REQUEST, users[i]);
     users.splice(i, 1);
     setRequestingUsers(users);
   }
@@ -134,7 +136,7 @@ function CreateRoom() {
               </Typography>
 
               {
-                !requestingUsers && (
+                (!requestingUsers || requestingUsers.length === 0) && (
                   <Typography textAlign={'center'} sx={{ margin: '3px' }}>
                     --- No one requested to join room ---
                   </Typography>
@@ -145,21 +147,23 @@ function CreateRoom() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around' }}>
                 {
                   requestingUsers && requestingUsers.map((user, index) => {
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography textAlign={'center'} sx={{ margin: '3px' }}>
-                        {user.username}
-                      </Typography>
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography textAlign={'center'} sx={{ margin: '3px' }}>
+                          {user.username}
+                        </Typography>
 
-                      <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                        <Button sx={{ backgroundColor: 'green', color: 'white', margin: '4px' }} onClick={() => { acceptToJoinRoom(index) }}>
-                          ACCEPT
-                        </Button>
+                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                          <Button sx={{ '&:hover': { backgroundColor: '#2adc2a' }, backgroundColor: 'green', color: 'white', margin: '4px' }} onClick={() => { acceptToJoinRoom(index) }}>
+                            ACCEPT
+                          </Button>
 
-                        <Button sx={{ backgroundColor: 'red', color: 'white', margin: '4px' }} onClick={() => { denyToJoinRoom(index) }}>
-                          DENY
-                        </Button>
+                          <Button sx={{ '&:hover': { backgroundColor: '#e94b4b' }, backgroundColor: 'red', color: 'white', margin: '4px' }} onClick={() => { denyToJoinRoom(index) }}>
+                            DENY
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    )
                   })
                 }
               </div>
@@ -169,26 +173,31 @@ function CreateRoom() {
               </Typography>
 
               {
-                !acceptedUsers && (
+                (!acceptedUsers || acceptedUsers.length === 0) && (
                   <Typography textAlign={'center'} sx={{ margin: '3px' }}>
                     --- No one accepted to join room ---
                   </Typography>
                 )
               }
 
-              {
-                acceptedUsers && acceptedUsers.map((user, index) => {
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography textAlign={'center'} sx={{ margin: '3px' }}>
-                      {user.username}
-                    </Typography>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around' }}>
+                {
+                  acceptedUsers && acceptedUsers.map((user, index) => {
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography textAlign={'center'} sx={{ margin: '3px' }}>
+                          {user.username}
+                        </Typography>
 
-                    <Button sx={{ backgroundColor: 'green', color: 'white', margin: '4px' }} onClick={() => { removeFromRoom(index) }}>
-                      REMOVE
-                    </Button>
-                  </div>
-                })
-              }
+                        <Button sx={{ '&:hover': { backgroundColor: '#e94b4b' }, backgroundColor: 'red', color: 'white', margin: '4px' }} onClick={() => { removeFromRoom(index) }}>
+                          DENY
+                        </Button>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+
               <Button sx={{ color: 'red', marginTop: '5px' }} onClick={deleteRoom}>Delete this room</Button>
             </div>
           </div>

@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST,GET_ALL_DATA } from '../../utils/constants';
 
 function JoinRoom() {
   document.title = 'Join Room';
@@ -42,20 +42,27 @@ function JoinRoom() {
   useEffect(() => {
     if (socket === null) return;
 
-    console.log(socket);
-
     socket.emit(JOIN_ROOM_REQUEST, { roomId });
 
-    socket.on(DENY_REQUEST, (response) => {
-      setDenied(response.data);
+    socket.on(DENY_REQUEST, () => {
+      setDenied(true);
     })
 
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      setData((prev) => { return { ...prev, others: [...prev.others, response.data] } });
+      if (response.message && response.message === 'get_all_data') {
+        socket.emit(GET_ALL_DATA, ({ roomId, type: 'joined-room' }));
+      } else {
+        setData((prev) => { return { ...prev, others: [...prev.others, response] } });
+      }
+    })
+
+    socket.on(GET_ALL_DATA, (response) => {
+      setData(response);
     })
   }, [socket])
 
   const initialLoad = () => {
+    // Get only the owner details if accepted by owner then get details of all users
     axios.get(API_URL + '/valid-joined-room/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
@@ -65,8 +72,8 @@ function JoinRoom() {
 
       setSocket(
         io(process.env.REACT_APP_SOCKET_URL + '/room', {
-          query: {
-            token: localStorage.getItem('token') // Include token in query string
+          auth: {
+            token: localStorage.getItem('token')
           }
         })
       )
@@ -92,16 +99,30 @@ function JoinRoom() {
               {data.owner}
             </Typography>
 
-            <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
-              <b>Other users</b>
-            </Typography>
+            {
+              !data.others && (
+                <div>
+                  Loading....
+                </div>
+              )
+            }
 
             {
-              data.others.map((user) => {
-                <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
-                  {user}
-                </Typography>
-              })
+              data.others && (
+                <>
+                  <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
+                    <b>Other users</b>
+                  </Typography>
+
+                  {
+                    data.others.map((username) => {
+                      <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
+                        {username}
+                      </Typography>
+                    })
+                  }
+                </>
+              )
             }
 
             <Button onClick={() => { navigate('/join-room') }}>Exit this room and join other room</Button>
@@ -132,7 +153,7 @@ function JoinRoom() {
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
               <Typography textAlign={'center'} color={'red'}>
-                ** Room with entered ID has denied your request to join into this room **
+                ** Owner has denied your request to join into this room **
               </Typography>
 
               <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>

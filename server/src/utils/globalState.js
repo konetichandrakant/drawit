@@ -71,8 +71,8 @@ class Details {
     return this.socketDetails[userId];
   }
 
-  setSocketIdByUserId(userId, socketId) {
-    this.socketDetails[userId] = socketId;
+  setSocketDetailsByUserId(userId, details) {
+    this.socketDetails[userId] = details;
   }
 
   isUserPresent(userId) {

@@ -16,7 +16,7 @@ exports.createRoomController = (req, res) => {
 
   const username = email.split('@')[0];
 
-  globalState.setSocketIdByUserId(userId, { username, socketId: null });
+  globalState.setSocketDetailsByUserId(userId, { username, socketId: null });
   globalState.setRoomDetailsById(roomId, { users: [], owner: userId });
 
   return res.status(200).send({ roomId });
