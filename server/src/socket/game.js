@@ -3,29 +3,31 @@ const { globalState } = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+const getUserDetails = (token) => {
+  if (!token || !token.startsWith('Bearer ')) {
+    return next(new Error('Invalid token format')); // More specific error message
+  }
+
+  const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
+  return jwt.verify(authToken, process.env.JWT_SECRET_KEY);
+}
+
+const setUserDetailsToSocket = (token, socketId) => {
+
+  if (!token || !token.startsWith('Bearer ')) {
+    return next(new Error('Invalid token format')); // More specific error message
+  }
+
+  const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
+  const { email, userId } = jwt.verify(authToken, process.env.JWT_SECRET_KEY);
+  const username = email.split('@')[0];
+
+  globalState.setSocketDetailsByUserId(userId, { username, socketId });
+}
+
 exports.gameSocket = (io) => {
 
-  io.use((socket, next) => {
-    try {
-      const token = socket.auth.token;
-
-      if (!token || !token.startsWith('Bearer ')) {
-        return new Error('Invalid token');
-      }
-
-      try {
-        const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
-        socket.userDetails = jwt.verify(authToken, JWT_SECRET_KEY); // Replace with your secret key
-        next();
-      } catch {
-        return new Error('Invalid token');
-      }
-    } catch (err) {
-      return err;
-    }
-  });
-
-  io.of('/game').on('connection', (socket) => {
+  io.on('connection', (socket) => {
 
     console.log('socket connected with id: ' + socket.id);
 

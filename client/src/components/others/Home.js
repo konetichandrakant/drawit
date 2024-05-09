@@ -13,14 +13,10 @@ function Home() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
 
-  // Data received should be in the below format
-  // { matchesPlayed : Number }
-
   useEffect(() => {
-
-    initialLoad();
-
-  }, [])
+    if (!data)
+      initialLoad();
+  }, [data])
 
   const initialLoad = () => {
     axios.get(API_URL + '/home', {

@@ -18,8 +18,8 @@ const io = require('socket.io')(parseInt(process.env.SOCKET_PORT), {
   }
 });
 
-gameSocket(io);
-roomSocket(io);
+gameSocket(io.of('/game'));
+roomSocket(io.of('/room'));
 
 app.use(cors({
   origin: process.env.CLIENT_URL

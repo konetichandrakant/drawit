@@ -5,7 +5,9 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST,GET_ALL_DATA } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA } from '../../utils/constants';
+import { CircularProgress } from '@mui/material';
+import Header from '../others/Header';
 
 function JoinRoom() {
   document.title = 'Join Room';
@@ -23,18 +25,18 @@ function JoinRoom() {
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  useEffect(() => {
+  const preventRefresh = (event) => {
+    event.preventDefault();
+    event.returnValue = "Data will be lost";
+  };
 
-    if (data === null) {
+  useEffect(() => {
+    if (!data)
       initialLoad();
-    }
+    window.addEventListener('beforeunload', preventRefresh);
 
     return () => {
-      if (socket) {
-        socket.disconnect(() => {
-          console.log('socket disconnected');
-        })
-      }
+      window.removeEventListener('beforeunload', preventRefresh);
     }
 
   }, [])
@@ -44,20 +46,17 @@ function JoinRoom() {
 
     socket.emit(JOIN_ROOM_REQUEST, { roomId });
 
-    socket.on(DENY_REQUEST, () => {
-      setDenied(true);
+    socket.on(DENY_REQUEST, (response) => {
+      socket.disconnect();
+      setDenied(response);
     })
 
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      if (response.message && response.message === 'get_all_data') {
-        socket.emit(GET_ALL_DATA, ({ roomId, type: 'joined-room' }));
+      if (response.firstLoad) {
+        setData(response.data);
       } else {
         setData((prev) => { return { ...prev, others: [...prev.others, response] } });
       }
-    })
-
-    socket.on(GET_ALL_DATA, (response) => {
-      setData(response);
     })
   }, [socket])
 
@@ -86,64 +85,62 @@ function JoinRoom() {
     })
   }
 
+  const exitRoom = (navigateTo) => {
+
+    navigate(navigateTo);
+  }
+
   return (
     <>
       {
         data && (
-          <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
-            <Typography textAlign={'center'} sx={{ margin: '5px' }}>
-              <b>Owner</b>
-            </Typography>
+          <>
+            <Header />
+            <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
+              <Typography textAlign={'center'} sx={{ margin: '5px' }}>
+                <b>Owner</b>
+              </Typography>
 
-            <Typography textAlign={'center'} sx={{ margin: '3px' }}>
-              {data.owner}
-            </Typography>
+              <Typography textAlign={'center'} sx={{ margin: '3px' }}>
+                {data.owner}
+              </Typography>
 
-            {
-              !data.others && (
-                <div>
-                  Loading....
-                </div>
-              )
-            }
+              {
+                data.others && (
+                  <>
+                    <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
+                      <b>Other users</b>
+                    </Typography>
 
-            {
-              data.others && (
-                <>
-                  <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
-                    <b>Other users</b>
-                  </Typography>
+                    {
+                      data.others.map((username) => {
+                        return (
+                          <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
+                            {username}
+                          </Typography>
+                        )
+                      })
+                    }
+                  </>
+                )
+              }
 
-                  {
-                    data.others.map((username) => {
-                      <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
-                        {username}
-                      </Typography>
-                    })
-                  }
-                </>
-              )
-            }
+              <Button onClick={() => { exitRoom('/join-room') }}>Exit this room and join other room</Button>
 
-            <Button onClick={() => { navigate('/join-room') }}>Exit this room and join other room</Button>
-
-            <Button onClick={() => { navigate('/') }}>Exit this room and go to home</Button>
-          </div>
+              <Button onClick={() => { exitRoom('/') }}>Exit this room and go to home</Button>
+            </div>
+          </>
         )
       }
 
       {
-        isValidUser === null && isRoomPresent === null && !data && !denied && (
-          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-              <Typography textAlign={'center'} color={'red'}>
-                Please wait until you will be accepted by owner of the room
-              </Typography>
+        isValidUser === null && isRoomPresent === null && (!data || !data.others) && denied === null && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+            <CircularProgress color="inherit" />
 
-              <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
-
-              <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
-            </Paper>
+            <Typography textAlign={'center'} color={'red'}>
+              ** Please wait until you will be accepted by owner of the room **
+            </Typography>
           </div>
         )
       }

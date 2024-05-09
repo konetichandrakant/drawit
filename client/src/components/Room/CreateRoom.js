@@ -25,27 +25,25 @@ function CreateRoom() {
   // Not authenticated user user who is not in that room should give error page
   // username + ' was accepted by owner to join the room'
 
-  useEffect(() => {
+  const preventRefresh = (event) => {
+    event.preventDefault();
+    event.returnValue = "Data will be lost";
+  };
 
-    intialLoad();
+  useEffect(() => {
+    if (!socket)
+      intialLoad();
+    window.addEventListener('beforeunload', preventRefresh);
 
     return () => {
-      console.log('exited', socket);
-      if (socket) {
-        socket.disconnect(() => {
-          console.log('socket disconnected');
-        })
-      }
+      window.removeEventListener('beforeunload', preventRefresh);
     }
   }, [])
 
   useEffect(() => {
     if (socket === null) return;
 
-    socket.emit(ROOM_CREATED, null);
-
     socket.on(JOIN_ROOM_REQUEST, (response) => {
-      console.log(response);
       setRequestingUsers((prev) => { return prev === null ? [response] : [...prev, response] });
     })
 
@@ -95,6 +93,10 @@ function CreateRoom() {
   }
 
   const deleteRoom = () => {
+    if (!socket) {
+      return alert('Room will not be deleted so early');
+    }
+
     axios.delete(API_URL + '/exit-game/' + roomId, {
       headers: {
         Authorization: localStorage.getItem('token')
@@ -102,10 +104,10 @@ function CreateRoom() {
         deleteRoom: true
       }
     }).then(() => {
-      console.log('deleted');
+      socket.disconnect();
       navigate('/');
     }).catch(() => {
-      console.log('error');
+      socket.disconnect();
       navigate('/');
     })
   }
