@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, ROOM_CREATED, GET_ALL_DATA } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, ROOM_CREATED, GET_ALL_DATA, EXIT_ROOM } from '../../utils/constants';
 import Header from '../others/Header';
 
 function CreateRoom() {
@@ -47,8 +47,29 @@ function CreateRoom() {
       setRequestingUsers((prev) => { return prev === null ? [response] : [...prev, response] });
     })
 
-    socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      setAcceptedUsers((prev) => { return prev === null ? [response] : [...prev, response] });
+    socket.on(EXIT_ROOM, (response) => {
+      let deleted = false;
+      if (requestingUsers) {
+        for (let i = 0; i < requestingUsers.length; i++) {
+          if (requestingUsers[i]['userId'] === response['userId']) {
+            let reqUsers = [...requestingUsers];
+            reqUsers.splice(i, 1);
+            setRequestingUsers(reqUsers);
+            deleted = true;
+            break;
+          }
+        }
+      }
+      if (!deleted) {
+        for (let i = 0; i < acceptedUsers.length; i++) {
+          if (acceptedUsers[i]['userId'] === response['userId']) {
+            let accUsers = [...acceptedUsers];
+            accUsers.splice(i, 1);
+            setAcceptedUsers(accUsers);
+            break;
+          }
+        }
+      }
     })
   }, [socket])
 
@@ -74,6 +95,7 @@ function CreateRoom() {
 
   const acceptToJoinRoom = (i) => {
     const users = [...requestingUsers];
+    socket.emit(ACCEPTED_JOIN_ROOM, { userId: requestingUsers[i]['userId'], roomId });
     setAcceptedUsers((prev) => { return prev === null ? [users[i]] : [...prev, users[i]] });
     users.splice(i, 1);
     setRequestingUsers(users);
@@ -81,7 +103,7 @@ function CreateRoom() {
 
   const denyToJoinRoom = (i) => {
     const users = [...requestingUsers];
-    socket.emit(DENY_REQUEST, users[i]);
+    socket.emit(DENY_REQUEST, { userId: users[i].userId, roomId });
     users.splice(i, 1);
     setRequestingUsers(users);
   }

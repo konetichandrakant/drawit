@@ -23,7 +23,7 @@
 
 // exports.socketDetails = {};
 // {
-//   userId: socketId, username
+//   userId: socketId, username, roomId
 // }
 
 class Details {
@@ -67,11 +67,11 @@ class Details {
     delete this.gameDetails[roomId];
   }
 
-  getSocketByUserId(userId) {
+  getUserDetailsById(userId) {
     return this.socketDetails[userId];
   }
 
-  setSocketDetailsByUserId(userId, details) {
+  setUserDetailsById(userId, details) {
     this.socketDetails[userId] = details;
   }
 

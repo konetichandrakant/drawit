@@ -5,3 +5,4 @@ exports.NEXT_LEVEL = 'NEXT_LEVEL';
 exports.DENY_REQUEST = 'DENY_REQUEST';
 exports.REMOVE_USER = 'REMOVE_USER';
 exports.EXIT_ROOM = 'EXIT_ROOM';
+exports.GET_ALL_DATA = 'GET_ALL_DATA';

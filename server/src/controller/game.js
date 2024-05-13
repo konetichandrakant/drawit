@@ -2,8 +2,8 @@ const User = require('../models/User');
 const Game = require('../models/Game');
 const globalState = require('../utils/globalState');
 
-exports.createRoomController = (req, res) => {
-  const { userId, email } = req.userDetails;
+exports.createRoomController = async (req, res) => {
+  const { userId } = req.userDetails;
 
   let roomId;
 
@@ -14,9 +14,9 @@ exports.createRoomController = (req, res) => {
     }
   }
 
-  const username = email.split('@')[0];
+  const { username } = await User.findById(userId, { username: 1 });
 
-  globalState.setSocketDetailsByUserId(userId, { username, socketId: null });
+  globalState.setUserDetailsById(userId, { username, socketId: null });
   globalState.setRoomDetailsById(roomId, { users: [], owner: userId });
 
   return res.status(200).send({ roomId });

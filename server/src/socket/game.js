@@ -1,6 +1,7 @@
 const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../utils/constants');
 const { globalState } = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 require('dotenv').config();
 
 const getUserDetails = (token) => {
@@ -12,17 +13,17 @@ const getUserDetails = (token) => {
   return jwt.verify(authToken, process.env.JWT_SECRET_KEY);
 }
 
-const setUserDetailsToSocket = (token, socketId) => {
+const setUserDetailsToSocket = async (token, socketId) => {
 
   if (!token || !token.startsWith('Bearer ')) {
     return next(new Error('Invalid token format')); // More specific error message
   }
 
   const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
-  const { email, userId } = jwt.verify(authToken, process.env.JWT_SECRET_KEY);
-  const username = email.split('@')[0];
+  const { userId } = jwt.verify(authToken, process.env.JWT_SECRET_KEY);
+  const { username } = await User.findById(userId, { username: 1 });
 
-  globalState.setSocketDetailsByUserId(userId, { username, socketId });
+  globalState.setUserDetailsById(userId, { username, socketId });
 }
 
 exports.gameSocket = (io) => {

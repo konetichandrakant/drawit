@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA, EXIT_ROOM, REMOVE_USER } from '../../utils/constants';
 import { CircularProgress } from '@mui/material';
 import Header from '../others/Header';
 
@@ -46,18 +46,38 @@ function JoinRoom() {
 
     socket.emit(JOIN_ROOM_REQUEST, { roomId });
 
-    socket.on(DENY_REQUEST, (response) => {
+    socket.on(GET_ALL_DATA, (response) => {
+      console.log(response);
+      setData(response);
+    })
+
+    socket.on(DENY_REQUEST, () => {
       socket.disconnect();
-      setDenied(response);
+      setDenied(true);
+    })
+
+    socket.on(REMOVE_USER, (response) => {
+      const { userId } = response;
+      const others = [...data.others];
+
+      for (let i = 0; i < others.length; i++) {
+        if (others[i]['userId'] === userId) {
+          others.splice(i, 1);
+          break;
+        }
+      }
+
+      setData({ ...data, others });
     })
 
     socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      if (response.firstLoad) {
-        setData(response.data);
-      } else {
-        setData((prev) => { return { ...prev, others: [...prev.others, response] } });
-      }
+      console.log(response);
+      setData((prev) => { return { ...prev, others: [...prev.others, response] } });
     })
+
+    return () => {
+      socket.off(JOIN_ROOM_REQUEST);
+    }
   }, [socket])
 
   const initialLoad = () => {
@@ -86,61 +106,60 @@ function JoinRoom() {
   }
 
   const exitRoom = (navigateTo) => {
-
+    socket.emit(EXIT_ROOM, { roomId });
+    socket.disconnect();
     navigate(navigateTo);
   }
 
   return (
     <>
+      <Header />
       {
         data && (
-          <>
-            <Header />
-            <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
-              <Typography textAlign={'center'} sx={{ margin: '5px' }}>
-                <b>Owner</b>
-              </Typography>
-
-              <Typography textAlign={'center'} sx={{ margin: '3px' }}>
-                {data.owner}
-              </Typography>
-
-              {
-                data.others && (
-                  <>
-                    <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
-                      <b>Other users</b>
-                    </Typography>
-
-                    {
-                      data.others.map((username) => {
-                        return (
-                          <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
-                            {username}
-                          </Typography>
-                        )
-                      })
-                    }
-                  </>
-                )
-              }
-
-              <Button onClick={() => { exitRoom('/join-room') }}>Exit this room and join other room</Button>
-
-              <Button onClick={() => { exitRoom('/') }}>Exit this room and go to home</Button>
-            </div>
-          </>
-        )
-      }
-
-      {
-        isValidUser === null && isRoomPresent === null && (!data || !data.others) && denied === null && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-            <CircularProgress color="inherit" />
-
-            <Typography textAlign={'center'} color={'red'}>
-              ** Please wait until you will be accepted by owner of the room **
+          <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
+            <Typography textAlign={'center'} sx={{ margin: '5px' }}>
+              <b>Owner</b>
             </Typography>
+
+            <Typography textAlign={'center'} sx={{ margin: '3px' }}>
+              {data.owner}
+            </Typography>
+
+            {
+              !data.others && (
+                <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+                  <CircularProgress color="inherit" />
+
+                  <Typography textAlign={'center'} color={'red'}>
+                    ** Please wait until you will be accepted by owner of the room **
+                  </Typography>
+                </div>
+              )
+            }
+
+            {
+              data.others && (
+                <>
+                  <Typography textAlign={'center'} sx={{ margin: '5px', marginTop: '10px' }}>
+                    <b>Other users</b>
+                  </Typography>
+
+                  {
+                    data.others.map((username) => {
+                      return (
+                        <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
+                          {username}
+                        </Typography>
+                      )
+                    })
+                  }
+                </>
+              )
+            }
+
+            <Button onClick={() => { exitRoom('/join-room') }}>Exit this room and join other room</Button>
+
+            <Button onClick={() => { exitRoom('/') }}>Exit this room and go to home</Button>
           </div>
         )
       }

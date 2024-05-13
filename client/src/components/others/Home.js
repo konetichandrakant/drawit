@@ -39,20 +39,15 @@ function Home() {
     axios.get(API_URL + '/valid-creating-room', {
       headers: {
         Authorization: localStorage.getItem('token')
+      },
+      params: {
+        type: 'Create Room'
       }
     }).then((response) => {
-      axios.get(API_URL + '/create-room', {
-        headers: {
-          Authorization: localStorage.getItem('token')
-        }
-      }).then((response) => {
-        const { roomId } = response.data;
-        navigate('/create-room/' + roomId);
-      }).catch(() => {
-        alert('Cant create room please try again!!');
-      })
+      const { roomId } = response.data;
+      navigate('/create-room/' + roomId);
     }).catch(() => {
-      alert('Cant create room because you are already in one room!!');
+      alert('Cant create room please try again!!');
     })
   }
 
