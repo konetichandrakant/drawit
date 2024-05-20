@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Header from './Header';
-import GameItem from './GameItem';
+import Header from '../../components/Header';
+import GameItem from '../../components/GameItem';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 let pageDetails = { page: 0, limit: 10 }

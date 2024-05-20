@@ -8,16 +8,20 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import drawitLogo from '../../images/drawit_logo.png';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 let details = { email: '', password: '' };
 
 function Login() {
   document.title = 'Login';
-  const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [valid, setValid] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = (e) => {
-    setValid('Loading...');
+    if (valid)
+      setValid(null);
+    setLoading(true);
 
     axios.post(API_URL + '/login', details)
       .then((res) => {
@@ -30,6 +34,8 @@ function Login() {
       .catch(() => {
         return setValid('** Some error occured please try again! **');
       })
+
+    setLoading(false);
   }
 
   return (
@@ -67,12 +73,21 @@ function Login() {
         </Grid>
 
         {
-          valid !== null && (
+          loading && (
+            <Typography textAlign={'center'} paddingTop={'10px'} color={'blue'}>
+              Loading...
+            </Typography>
+          )
+        }
+
+        {
+          valid && (
             <Typography textAlign={'center'} paddingTop={'10px'} color={'red'}>
               {valid}
             </Typography>
           )
         }
+
         <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', margin: '10px', marginTop: '20px' }}>
           <Button type="submit" variant="contained" onClick={onSubmit} sx={{ width: '300px', backgroundColor: '#0866ff' }} >
             Log in
@@ -82,7 +97,7 @@ function Login() {
         <hr />
 
         <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', margin: '10px' }}>
-          <Button type="submit" variant="contained" onClick={() => { navigate('/register') }} sx={{ backgroundColor: '#42b72a' }}>
+          <Button type="submit" variant="contained" onClick={() => { navigate('/register') }} sx={{ '&:hover': { backgroundColor: '#398729' }, backgroundColor: '#42b72a' }}>
             Create new account
           </Button>
         </div>

@@ -1,4 +1,4 @@
-const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA } = require('../utils/constants');
+const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA, REMOVED } = require('../utils/constants');
 const globalState = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -56,8 +56,8 @@ exports.roomSocket = (io) => {
     }
   }
 
-  const getUsernamesListFromUserIdsList = (userIdsList) => {
-    return userIdsList.map((userId) => { return globalState.getUserDetailsById(userId)['username'] });
+  const getUserDetailsListFromUserIdsList = (userIdsList) => {
+    return userIdsList.map((userId) => { return { userId, username: globalState.getUserDetailsById(userId)['username'] } });
   }
 
   io.on('connection', (socket) => {
@@ -73,7 +73,7 @@ exports.roomSocket = (io) => {
       if (userPresentInRoom(roomId)) {
         socket.to(globalState.getUserDetailsById(userId)['socketId']).emit(GET_ALL_DATA, {
           owner: globalState.getUserDetailsById(roomDetails['owner'])['username'],
-          others: getUsernamesListFromUserIdsList(roomDetails['users'])
+          others: getUserDetailsListFromUserIdsList(roomDetails['users'])
         });
       } else {
         const roomDetails = globalState.getRoomDetailsById(roomId);
@@ -85,12 +85,12 @@ exports.roomSocket = (io) => {
         // sending message to owner of the room
         socket.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, username: globalState.getUserDetailsById(userId)['username'] });
       }
+      console.log(globalState.getUserDetailsById(userId));
     })
 
     // After accepting the person the request is sent to the server and caught here. Moreover, we should send the admitted person details to all members in the group
     // If not accepted we need to let the user who wants to play know that he/she was denied by owner.
     socket.on(ACCEPTED_JOIN_ROOM, (data) => {
-      console.log(data);
       const { roomId, userId } = data;
       const acceptedUserSocketId = globalState.getUserDetailsById(userId)['socketId'];
 
@@ -103,70 +103,70 @@ exports.roomSocket = (io) => {
       // Optimised to send all user details to only acceptedUsers
       socket.to(acceptedUserSocketId).emit(GET_ALL_DATA, {
         owner: globalState.getUserDetailsById(roomDetails['owner'])['username'],
-        others: getUsernamesListFromUserIdsList(roomDetails['users'])
+        others: getUserDetailsListFromUserIdsList(roomDetails['users'])
       });
 
       // Send accepted user to all members in the room
-      io.to(roomId).emit(ACCEPTED_JOIN_ROOM, globalState.getUserDetailsById(userId)['username']);
+      io.to(roomId).emit(ACCEPTED_JOIN_ROOM, { username: globalState.getUserDetailsById(userId)['username'], userId });
 
-      console.log(acceptedUserSocketId);
       // Join into room
       joinSocketToRoom(acceptedUserSocketId, roomId);
     })
 
     socket.on(DENY_REQUEST, (data) => {
+      console.log(data);
       const { userId } = data;
 
       const deniedUserSocketId = globalState.getUserDetailsById(userId)['socketId'];
       socket.to(deniedUserSocketId).emit(DENY_REQUEST);
 
-      globalState.deleteSocketByUserId(userId);
+      globalState.deleteUserByUserId(userId);
     })
 
     socket.on(REMOVE_USER, (data) => {
+      console.log(data, ' remove user')
       const { userId, roomId } = data;
+      console.log(globalState.getUserDetailsById(userId));
 
-      io.to(roomId).emit(REMOVE_USER);
+      const removingUserSocketId = globalState.getUserDetailsById(userId)['socketId'];
+      // Get socket object 
+      const removingUserSocketObject = io.sockets.get(removingUserSocketId);
+      // Emitting event to removing socket user
+      removingUserSocketObject.emit(REMOVED);
+      // Leaving room
+      removingUserSocketObject.leave(roomId);
 
       const roomDetails = globalState.getRoomDetailsById(roomId);
 
-      let spliceIndex = -1;
+      // Remove user details from room details
       for (let i = 0; i < roomDetails['users'].length; i++) {
-        if (roomDetails['users'][i] === globalState.getUserDetailsById(userId)['userId']) {
-          spliceIndex = i;
-          globalState.deleteSocketByUserId(userId);
+        if (roomDetails['users'][i] === userId) {
+          roomDetails['users'].splice(i, 1);
+          globalState.setRoomDetailsById(roomId, roomDetails);
+          globalState.deleteUserByUserId(userId);
+          io.to(roomId).emit(REMOVE_USER, { userId });
           break;
         }
       }
-
-      if (spliceIndex !== -1) {
-        const copyRoomDetails = [...roomDetails];
-        copyRoomDetails.splice(spliceIndex, 1);
-
-        globalState.setRoomDetailsById(roomId, copyRoomDetails);
-      }
+      console.log(globalState.getUserDetailsById(userId));
     })
 
+    // come back
     socket.on(EXIT_ROOM, (data) => {
       const { roomId } = data;
       const { userId } = getUserDetails(socket.handshake.auth.token);
 
       const roomDetails = globalState.getRoomDetailsById(roomId);
+      socket.leave(roomId);
 
-      let spliceIndex = -1;
       for (let i = 0; i < roomDetails['users'].length; i++) {
-        if (roomDetails['users'][i] === globalState.getUserDetailsById(userId)['userId']) {
-          spliceIndex = i;
-          globalState.deleteSocketByUserId(userId);
+        if (roomDetails['users'][i] === userId) {
+          roomDetails['users'].splice(i, 1);
+          globalState.setRoomDetailsById(roomId, roomDetails);
+          globalState.deleteUserByUserId(userId);
+          io.to(roomId).emit(EXIT_ROOM, { userId });
           break;
         }
-      }
-
-      if (spliceIndex !== -1) {
-        const copyRoomDetails = [...roomDetails];
-        copyRoomDetails.splice(spliceIndex, 1);
-
-        globalState.setRoomDetailsById(roomId, copyRoomDetails);
       }
     })
 

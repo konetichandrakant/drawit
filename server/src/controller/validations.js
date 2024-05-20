@@ -39,6 +39,7 @@ exports.validCreatedRoomController = (req, res) => {
 exports.validJoiningRoomController = async (req, res) => {
   const { roomId } = req.params;
   const { userId } = req.userDetails;
+  console.log(globalState.getUserDetailsById(userId));
 
   if (roomId) {
     if (globalState.isUserPresent(userId))

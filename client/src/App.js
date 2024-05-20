@@ -1,14 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './components/others/Home';
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-import Profile from './components/others/Profile';
-import Game from './components/game/Game';
-import GameHistory from './components/others/GameHistory';
-import CreateRoom from './components/room/CreateRoom';
-import JoinRoomInput from './components/room/JoinRoomInput';
-import JoinRoom from './components/room/JoinRoom';
+import Home from './containers/HomePage/HomePage';
+import Login from './containers/LoginPage/LoginPage';
+import Register from './containers/RegisterPage/RegisterPage';
+import Profile from './containers/ProfilePage/ProfilePage';
+// import Game from './containers/';
+import GameHistory from './containers/GameHistoryPage/GameHistoryPage';
+import CreateRoom from './containers/CreateRoomPage/CreateRoomPage';
+import JoinRoomInput from './containers/JoinRoomPage/JoinRoomInput';
+import JoinRoom from './containers/JoinRoomPage/JoinRoom';
 import './App.css';
 
 const App = () => {
@@ -19,8 +19,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path='/game' element={<Game />} />
-        <Route path='/games' element={<GameHistory />} />
+        <Route path="/games" element={<GameHistory />} />
         <Route path="/create-room/:roomId" element={<CreateRoom />} />
         <Route path="/join-room" element={<JoinRoomInput />} />
         <Route path="/join-room/:roomId" element={<JoinRoom />} />

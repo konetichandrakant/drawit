@@ -5,9 +5,9 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA, EXIT_ROOM, REMOVE_USER } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA, EXIT_ROOM, REMOVE_USER, REMOVED } from '../../utils/constants';
 import { CircularProgress } from '@mui/material';
-import Header from '../others/Header';
+import Header from '../../components/Header';
 
 function JoinRoom() {
   document.title = 'Join Room';
@@ -19,6 +19,9 @@ function JoinRoom() {
   const [isValidUser, setIsvalidUser] = useState(null);
   const [socket, setSocket] = useState(null);
   const [isRoomPresent, setIsRoomPresent] = useState(null);
+  const [removed, setRemoved] = useState(null);
+
+  console.log(data);
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
@@ -56,7 +59,25 @@ function JoinRoom() {
       setDenied(true);
     })
 
+    socket.on(REMOVED, () => {
+      socket.disconnect();
+      setRemoved(true);
+    })
+
+    socket.on(ACCEPTED_JOIN_ROOM, (response) => {
+      setData((prev) => { return { ...prev, others: [...prev.others, response] } });
+    })
+
+    return () => {
+      socket.off(JOIN_ROOM_REQUEST);
+    }
+  }, [socket])
+
+  useEffect(() => {
+    if (socket === null || data === null) return;
+    
     socket.on(REMOVE_USER, (response) => {
+      console.log(data);
       const { userId } = response;
       const others = [...data.others];
 
@@ -70,15 +91,29 @@ function JoinRoom() {
       setData({ ...data, others });
     })
 
-    socket.on(ACCEPTED_JOIN_ROOM, (response) => {
-      console.log(response);
-      setData((prev) => { return { ...prev, others: [...prev.others, response] } });
+    socket.on(EXIT_ROOM, (response) => {
+      const { userId } = response;
+      const others = [...data.others];
+
+      console.log(others);
+
+      for (let i = 0; i < others.length; i++) {
+        if (others[i]['userId'] === userId) {
+          others.splice(i, 1);
+          break;
+        }
+      }
+
+      console.log(others);
+
+      setData({ ...data, others });
     })
 
     return () => {
-      socket.off(JOIN_ROOM_REQUEST);
+      socket.off(REMOVE_USER);
+      socket.off(EXIT_ROOM);
     }
-  }, [socket])
+  }, [data, socket])
 
   const initialLoad = () => {
     // Get only the owner details if accepted by owner then get details of all users
@@ -115,8 +150,8 @@ function JoinRoom() {
     <>
       <Header />
       {
-        data && (
-          <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
+        !removed && data && !denied && (
+          <div style={{ display: 'flex', height: 'calc(100vh - 100px)', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
             <Typography textAlign={'center'} sx={{ margin: '5px' }}>
               <b>Owner</b>
             </Typography>
@@ -127,7 +162,7 @@ function JoinRoom() {
 
             {
               !data.others && (
-                <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', marginTop: '10px', marginBottom: '10px', justifyContent: 'center', alignItems: 'center' }}>
                   <CircularProgress color="inherit" />
 
                   <Typography textAlign={'center'} color={'red'}>
@@ -145,10 +180,10 @@ function JoinRoom() {
                   </Typography>
 
                   {
-                    data.others.map((username) => {
+                    data.others.map((details) => {
                       return (
                         <Typography textAlign={'center'} sx={{ marginTop: '3px' }}>
-                          {username}
+                          {details.username}
                         </Typography>
                       )
                     })
@@ -158,7 +193,6 @@ function JoinRoom() {
             }
 
             <Button onClick={() => { exitRoom('/join-room') }}>Exit this room and join other room</Button>
-
             <Button onClick={() => { exitRoom('/') }}>Exit this room and go to home</Button>
           </div>
         )
@@ -173,7 +207,6 @@ function JoinRoom() {
               </Typography>
 
               <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
-
               <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
             </Paper>
           </div>
@@ -189,7 +222,6 @@ function JoinRoom() {
               </Typography>
 
               <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
-
               <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
             </Paper>
           </div>
@@ -205,6 +237,21 @@ function JoinRoom() {
               </Typography>
 
               <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
+            </Paper>
+          </div>
+        )
+      }
+
+      {
+        removed && (
+          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
+              <Typography textAlign={'center'} color={'red'}>
+                ** You are removed from the room by the owner **
+              </Typography>
+
+              <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
+              <Button onClick={() => { navigate('/') }}>Click here to join other room</Button>
             </Paper>
           </div>
         )

@@ -5,14 +5,15 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, ROOM_CREATED, GET_ALL_DATA, EXIT_ROOM } from '../../utils/constants';
-import Header from '../others/Header';
+import Header from '../../components/Header';
+import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, EXIT_ROOM, REMOVE_USER } from '../../utils/constants';
+
+const API_URL = process.env.REACT_APP_API_URL;
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
 
 function CreateRoom() {
   // Please enter the code as {xyz...} to enter my room. Lets DrawIt together!!
   document.title = 'Create Room';
-  const API_URL = process.env.REACT_APP_API_URL;
-  const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
   const { roomId } = useParams();
   const [requestingUsers, setRequestingUsers] = useState(null);
   const [acceptedUsers, setAcceptedUsers] = useState(null);
@@ -60,7 +61,7 @@ function CreateRoom() {
           }
         }
       }
-      if (!deleted) {
+      if (!deleted && acceptedUsers) {
         for (let i = 0; i < acceptedUsers.length; i++) {
           if (acceptedUsers[i]['userId'] === response['userId']) {
             let accUsers = [...acceptedUsers];
@@ -110,8 +111,13 @@ function CreateRoom() {
 
   const removeFromRoom = (i) => {
     const users = [...acceptedUsers];
+    socket.emit(REMOVE_USER, { userId: users[i].userId, roomId });
     users.splice(i, 1);
     setAcceptedUsers(users);
+  }
+
+  const startGame = () => {
+    console.log('start game');
   }
 
   const deleteRoom = () => {
@@ -214,13 +220,19 @@ function CreateRoom() {
                         </Typography>
 
                         <Button sx={{ '&:hover': { backgroundColor: '#e94b4b' }, backgroundColor: 'red', color: 'white', margin: '4px' }} onClick={() => { removeFromRoom(index) }}>
-                          DENY
+                          REMOVE
                         </Button>
                       </div>
                     )
                   })
                 }
               </div>
+
+              {
+                acceptedUsers && acceptedUsers.length > 0 && (
+                  <Button sx={{ color: 'green', marginTop: '5px' }} onClick={startGame}>Start the Game</Button>
+                )
+              }
 
               <Button sx={{ color: 'red', marginTop: '5px' }} onClick={deleteRoom}>Delete this room</Button>
             </div>

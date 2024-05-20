@@ -31,10 +31,10 @@ exports.exitGameController = (req, res) => {
 
     // Delete socket owner and the delete all members in the room present
     const ownerId = roomDetails['owner'];
-    globalState.deleteSocketByUserId(ownerId);
+    globalState.deleteUserByUserId(ownerId);
 
     for (let userId in roomDetails['users']) {
-      globalState.deleteSocketByUserId(userId);
+      globalState.deleteUserByUserId(userId);
     }
 
     globalState.deleteRoomById(roomId);
@@ -48,10 +48,10 @@ exports.exitGameController = (req, res) => {
 
     // Delete socket owner and the delete all members in the room present
     const ownerId = roomDetails['owner'];
-    globalState.deleteSocketByUserId(ownerId);
+    globalState.deleteUserByUserId(ownerId);
 
     for (let userId in roomDetails['users']) {
-      globalState.deleteSocketByUserId(userId);
+      globalState.deleteUserByUserId(userId);
     }
 
     globalState.deleteRoomById(roomId);

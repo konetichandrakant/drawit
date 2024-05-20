@@ -40,7 +40,7 @@ function Register() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw' }}>
       <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto', maxWidth: '35vw' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <img src={drawitLogo} alt={'drawit logo'} style={{ maxHeight: '15vh', maxWidth: '15vw' }} />

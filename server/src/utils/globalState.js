@@ -21,7 +21,7 @@
 //   }
 // }
 
-// exports.socketDetails = {};
+// exports.userDetails = {};
 // {
 //   userId: socketId, username, roomId
 // }
@@ -31,7 +31,7 @@ class Details {
     if (!Details.instance) {
       this.gameDetails = {};
       this.roomDetails = {};
-      this.socketDetails = {};
+      this.userDetails = {};
 
       Details.instance = this;
     }
@@ -68,19 +68,19 @@ class Details {
   }
 
   getUserDetailsById(userId) {
-    return this.socketDetails[userId];
+    return this.userDetails[userId];
   }
 
   setUserDetailsById(userId, details) {
-    this.socketDetails[userId] = details;
+    this.userDetails[userId] = details;
   }
 
   isUserPresent(userId) {
-    return userId in this.socketDetails;
+    return userId in this.userDetails;
   }
 
-  deleteSocketByUserId(userId) {
-    delete this.socketDetails[userId];
+  deleteUserByUserId(userId) {
+    delete this.userDetails[userId];
   }
 
 }
