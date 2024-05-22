@@ -8,7 +8,7 @@ exports.validGameRoomController = (req, res) => {
   if (!globalState.isRoomPresent(roomId))
     return res.status(404).send({ message: 'There is no such room created!!' });
 
-  if (!(userId in roomDetails['users']) && !(roomDetails['owner'] === userId))
+  if (!(userId in globalState.getRoomDetailsById(roomId)['users']) && !(globalState.getRoomDetailsById(roomId)['owner'] === userId))
     return res.status(401).send({ message: 'You are not authorised to play the game!!' });
 
   return res.status(200).send(true);

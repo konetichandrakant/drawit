@@ -1,4 +1,4 @@
-const drawItems = [
+module.exports = [
   "smiley_face",
   "octagon",
   "hexagon",
@@ -344,5 +344,3 @@ const drawItems = [
   "The_Eiffel_Tower",
   "picture_frame"
 ]
-
-module.exports = { drawItems };

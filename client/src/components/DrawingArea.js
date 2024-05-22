@@ -1,20 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { ReactP5Wrapper } from "react-p5-wrapper";
-import { useTheme } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import * as ml5 from "ml5";
 
-let classifier;
+let classifier = null;
 let canvas;
 
-function DoodleClassifier({ drawItem, width, height, setDrawItem }) {
-  const theme = useTheme();
-  const [score, setScore] = useState(null);
+async function loadML5() {
+  const ml5 = await import('ml5');
+  return ml5;
+}
+
+function DoodleClassifier({ drawingItem, level, onDrawingSubmit, width, height }) {
 
   useEffect(async () => {
+    if (classifier) return;
+    const ml5 = new loadML5();
     classifier = await ml5.imageClassifier("DoodleNet");
   }, []);
 
@@ -44,20 +47,19 @@ function DoodleClassifier({ drawItem, width, height, setDrawItem }) {
     let score = 0;
     for (let index in results) {
       const data = results[index];
-      if (data['label'] === drawItem) {
+      if (data['label'] === drawingItem) {
         console.log(data['confidence'], results);
         score = (data['confidence'] + ((results.length - index * 2) / results.length)) * 50;
       }
     }
-    setScore(score < 0 ? (score * -1) / 10 : score);
-    setDrawItem(drawItem);
+    return score < 0 ? (score * -1) / 10 : score;
   }
 
   const classifyImage = async () => {
     try {
       const results = await classifier.classify(canvas, 345);
-      calculateScore(results);
       clearCanvas(canvas);
+      onDrawingSubmit(calculateScore(results));
     } catch (error) {
       console.error("Error during classification:", error);
     }
@@ -73,38 +75,28 @@ function DoodleClassifier({ drawItem, width, height, setDrawItem }) {
         height: '80vh',
       }}
     >
-      {
-        score ? (
-          <div>
-            Your Score - {score}
-          </div>
-        ) : (
-          <>
-            <Typography textAlign="center" variant="h5">
-              <span style={{ color: 'orange', fontWeight: 700 }}>Draw</span>{' '}
-              <span style={{ color: 'blue', fontWeight: 800 }}>-</span>{' '}
-              <span style={{ color: 'black', fontWeight: 700 }}>{drawItem}</span>
-            </Typography>
-            <ReactP5Wrapper sketch={sketch} />
-            <Box
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-evenly',
-                marginBottom: theme.spacing(1),
-                width: width,
-              }}
-            >
-              <Button variant="contained" color="primary" onClick={clearCanvas}>
-                Clear
-              </Button>
-              <Button variant="contained" color="primary" onClick={classifyImage}>
-                Submit
-              </Button>
-            </Box>
-          </>
-        )
-      }
+      <Typography textAlign="center" variant="h5">
+        <span style={{ color: 'orange', fontWeight: 700 }}>Draw</span>{' '}
+        <span style={{ color: 'blue', fontWeight: 800 }}>-</span>{' '}
+        <span style={{ color: 'black', fontWeight: 700 }}>{drawingItem}</span>
+      </Typography>
+      <ReactP5Wrapper sketch={sketch} />
+      <Box
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-evenly',
+          marginBottom: '10px',
+          width: width,
+        }}
+      >
+        <Button variant="contained" color="primary" onClick={clearCanvas}>
+          Clear
+        </Button>
+        <Button variant="contained" color="primary" onClick={classifyImage}>
+          Submit
+        </Button>
+      </Box>
     </Paper>
   );
 };

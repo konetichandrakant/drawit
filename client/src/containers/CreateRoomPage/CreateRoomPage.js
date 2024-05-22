@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Paper from '@mui/material/Paper';
+import io from "socket.io-client";
+import { CREATE_ROOM, ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, EXIT_ROOM, REMOVE_USER, START_GAME } from '../../utils/constants';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import io from "socket.io-client";
 import Header from '../../components/Header';
-import { ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, EXIT_ROOM, REMOVE_USER } from '../../utils/constants';
+import { CircularProgress } from '@mui/material';
 
 const API_URL = process.env.REACT_APP_API_URL;
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL;
@@ -45,33 +45,42 @@ function CreateRoom() {
     if (socket === null) return;
 
     socket.on(JOIN_ROOM_REQUEST, (response) => {
-      setRequestingUsers((prev) => { return prev === null ? [response] : [...prev, response] });
+      if (!requestingUsers || requestingUsers.length === 0) {
+        setRequestingUsers([response]);
+      } else {
+        setRequestingUsers([...requestingUsers, response]);
+      }
     })
 
     socket.on(EXIT_ROOM, (response) => {
-      let deleted = false;
-      if (requestingUsers) {
-        for (let i = 0; i < requestingUsers.length; i++) {
-          if (requestingUsers[i]['userId'] === response['userId']) {
-            let reqUsers = [...requestingUsers];
-            reqUsers.splice(i, 1);
-            setRequestingUsers(reqUsers);
-            deleted = true;
-            break;
-          }
-        }
-      }
-      if (!deleted && acceptedUsers) {
-        for (let i = 0; i < acceptedUsers.length; i++) {
-          if (acceptedUsers[i]['userId'] === response['userId']) {
-            let accUsers = [...acceptedUsers];
-            accUsers.splice(i, 1);
-            setAcceptedUsers(accUsers);
-            break;
-          }
+      if (!acceptedUsers || acceptedUsers.length === 0) return;
+
+      for (let i = 0; i < acceptedUsers.length; i++) {
+        if (acceptedUsers[i]['userId'] === response['userId']) {
+          let accUsers = [...acceptedUsers];
+          accUsers.splice(i, 1);
+          setAcceptedUsers(accUsers);
+          break;
         }
       }
     })
+
+    socket.on(START_GAME, () => {
+      socket.disconnect();
+      navigate('/game/' + roomId);
+    })
+
+    return () => {
+      socket.off(START_GAME);
+      socket.off(JOIN_ROOM_REQUEST);
+      socket.off(EXIT_ROOM);
+    }
+  }, [socket, requestingUsers, acceptedUsers])
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.emit(CREATE_ROOM, { roomId });
   }, [socket])
 
   const intialLoad = async () => {
@@ -117,7 +126,7 @@ function CreateRoom() {
   }
 
   const startGame = () => {
-    console.log('start game');
+    socket.emit(START_GAME, { roomId });
   }
 
   const deleteRoom = () => {
@@ -144,14 +153,22 @@ function CreateRoom() {
     <>
       {
         isValidUser === null && (
-          <>Loading....</>
+          <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <CircularProgress color="inherit" />
+
+              <Typography textAlign={'center'} fontWeight={300}>
+                Loading...
+              </Typography>
+            </div>
+          </div>
         )
       }
 
       {
         isValidUser && (
           <div>
-            <Header />
+            <Header roomId={roomId} />
             <div style={{ display: 'flex', height: 'calc(100vh - 100px)', maxWidth: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
               <Typography textAlign={'center'} sx={{ margin: '5px' }}>
                 <b>Owner</b>
@@ -243,13 +260,11 @@ function CreateRoom() {
       {
         isValidUser === false && (
           <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-            <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-              <Typography textAlign={'center'} color={'red'}>
-                ** You are not owner for this room **
-              </Typography>
+            <Typography textAlign={'center'} color={'red'}>
+              ** You are not owner for this room **
+            </Typography>
 
-              <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
-            </Paper>
+            <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
           </div>
         )
       }

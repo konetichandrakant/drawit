@@ -1,4 +1,4 @@
-const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA, REMOVED } = require('../utils/constants');
+const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA, REMOVED, CREATE_ROOM, START_GAME } = require('../utils/constants');
 const globalState = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -64,6 +64,11 @@ exports.roomSocket = (io) => {
     console.log('socket connected id: ' + socket.id);
 
     setUserDetailsToSocket(socket.handshake.auth.token, socket.id);
+
+    socket.on(CREATE_ROOM, (data) => {
+      const { roomId } = data;
+      socket.join(roomId);
+    })
 
     // After client hits join room button the request is catched here. Here the request is sent only to the owner of the room
     socket.on(JOIN_ROOM_REQUEST, async (data) => {
@@ -168,6 +173,12 @@ exports.roomSocket = (io) => {
           break;
         }
       }
+    })
+
+    socket.on(START_GAME, (data) => {
+      const { roomId } = data;
+      console.log(roomId);
+      io.to(roomId).emit(START_GAME);
     })
 
     socket.on('disconnect', () => {

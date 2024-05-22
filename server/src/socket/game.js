@@ -1,5 +1,6 @@
 const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../utils/constants');
-const { globalState } = require('../utils/globalState');
+const globalState = require('../utils/globalState');
+const drawingItemNamesList = require('../utils/drawingItem');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 require('dotenv').config();
@@ -33,19 +34,25 @@ exports.gameSocket = (io) => {
     console.log('socket connected with id: ' + socket.id);
 
     socket.on(NEXT_LEVEL, (data) => {
-      const { userId } = socket.userDetails;
+      const { userId } = getUserDetails(socket.handshake.auth.token);
       const { roomId } = data;
 
-      const nextLevelDetails = getNextLevelDrawingItem({ gameDetails: globalState.getGameDetailsById(roomId), userId });
+      const nextLevelDetails = getNextLevelDrawingItem({ roomId, userId });
 
-      return socket.emit(NEXT_LEVEL, { drawingItem: nextLevelDetails });
+      if (nextLevelDetails) {
+        return socket.emit(NEXT_LEVEL, { completed: true });
+      } else {
+        return socket.emit(NEXT_LEVEL, { drawingItem: nextLevelDetails });
+      }
     })
 
     socket.on(UPDATE_LEADERBOARD, (data) => {
-      const { roomId, userId, score, level } = data;
+      const { userId } = getUserDetails(socket.handshake.auth.token);
+      const { roomId, score, level } = data;
 
       const gameDetails = globalState.getRoomDetailsById(roomId);
-      gameDetails[level]['usersInformation'][userId] = score;
+      gameDetails['levels'][level][userId] = score;
+      globalState.setGameDetailsById(roomId, gameDetails);
 
       io.to(roomId).emit(UPDATE_LEADERBOARD, { userId, score });
     })
@@ -57,24 +64,55 @@ exports.gameSocket = (io) => {
   })
 }
 
-const getNextLevelDrawingItem = ({ gameDetails, userId }) => {
+// const obj = {
+//   roomId: {
+//     levels: [
+//       {
+//         "userId": score,
+//       }, {
+//         "userId": score,
+//       }
+//     ],
+//     drawings: [
+//       "item-1", "item-2"
+//     ],
+//     users: {
+//       "userId": { playing: CONSTANT, totalScore: NUMBER, level: NUMBER }
+//     }
+//   }
+// }
 
-  for (let levelInformation in gameDetails['levelInformation']) {
-    if (!(userId in levelInformation['usersInformation'])) {
-      return { valid: true, drawingItem: levelInformation['usersInformation']['drawingItem'] };
+const getNextLevelDrawingItem = ({ roomId, userId }) => {
+  const gameDetails = globalState.getGameDetailsById(roomId);
+
+  if (gameDetails['users'][userId]['level'] != 3) {
+    const { level } = gameDetails['users'][userId];
+
+    if (gameDetails['drawings'].length > level) {
+      gameDetails['users'][userId]['level']++;
+      gameDetails['levels'][level][userId] = 0;
+      globalState.setGameDetailsById(roomId, gameDetails);
+      return gameDetails['drawings'][level];
     }
+
+    const generatedDrawingItem = generateRandomDrawing(gameDetails['drawings'].length + 1)
+    gameDetails['drawings'].push(generatedDrawingItem);
+    gameDetails['levels'].push({ userId: 0 });
+    gameDetails['users'][userId]['level']++;
+    globalState.setGameDetailsById(roomId, gameDetails);
+
+    return generatedDrawingItem;
+  } else {
+    return false;
   }
 
-  let excludeDrawings = [];
-  gameDetails['levelInformation'].map((info) => { excludeDrawings.push(info['drawingItem']) })
+}
 
-  // Random drawing item which is not given to any player
-  while (true) {
-    const randIndex = (drawItems.length * Math.random()) % drawItems.length;
-    drawing = drawItems[randIndex];
-    if (!(drawing in excludeDrawings)) {
-      return drawing;
-    }
+const generateRandomDrawing = (level) => {
+  if (level == 3) {
+    return drawingItemNamesList[Math.random() * 99 + 100 * (level - 1)];
+  } else {
+    return drawingItemNamesList[Math.random() * 144 + 100 * (level - 1)];
   }
 }
 

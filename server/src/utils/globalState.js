@@ -1,28 +1,29 @@
-// exports.gameDetails = {};
-// {
+// exports.gameDetails = {
 //   roomId: {
-//     levelInformation:
-//     [
+//     levels: [
 //       {
-//         drawingItem: "",
-//         userInformation: {
-//             "userId": score,
-//         }
+//         "userId": score,
+//       }, {
+//         "userId": score,
 //       }
-//     ]
+//     ],
+//     drawings: [
+//       "item-1", "item-2"
+//     ],
+//     users: {
+//       "userId": { playing: CONSTANT, totalScore: NUMBER, level: NUMBER }
+//     }
 //   }
 // }
 
-// exports.roomDetails = {};
-// {
+// exports.roomDetails = {
 //   roomId: {
 //     users: [ userId ]
 //     owner: userId
 //   }
 // }
 
-// exports.userDetails = {};
-// {
+// exports.userDetails = {
 //   userId: socketId, username, roomId
 // }
 
@@ -51,7 +52,7 @@ class Details {
     return roomId in this.roomDetails;
   }
 
-  deleteRoomById(roomId) {
+  deleteRoomDetailsById(roomId) {
     delete this.roomDetails[roomId];
   }
 
@@ -63,7 +64,7 @@ class Details {
     this.gameDetails[roomId] = data;
   }
 
-  deleteGameById(roomId) {
+  deleteGameDetailsById(roomId) {
     delete this.gameDetails[roomId];
   }
 
