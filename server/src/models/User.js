@@ -13,13 +13,19 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    gameIds: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Game',
-            default: []
+    gameIds: {
+        type: [mongoose.Schema.Types.ObjectId], // Array of ObjectIds
+        ref: 'Game',  // Reference to 'Game' model (optional)
+        default: []
+    },
+    noOfGamesPlayed: {
+        type: Number,
+        virtual: true, // Indicate it's a virtual field
+        get() {
+            // Improved handling of missing gameIds
+            return this.gameIds ? this.gameIds.length : 0;
         }
-    ]
+    }
 });
 
 // // Hash password before saving

@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import ArrowForwardOutlinedIcon from '@mui/icons-material/ArrowForwardOutlined';
 import ArrowForwardIosOutlinedIcon from '@mui/icons-material/ArrowForwardIosOutlined';
+import { CircularProgress } from '@mui/material';
 import Header from '../../components/Header';
 
 function Home() {
@@ -12,6 +13,7 @@ function Home() {
   const API_URL = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [room, setRoom] = useState(null);
 
   useEffect(() => {
     if (!data)
@@ -25,9 +27,11 @@ function Home() {
       }
     })
       .then((res) => {
-        const { invalidUser } = res.data;
+        const { invalidUser, room } = res.data;
         if (invalidUser)
           return navigate('/login');
+        if (room)
+          return setRoom(room);
         setData(res.data);
       })
       .catch(() => {
@@ -65,64 +69,88 @@ function Home() {
     })
   }
 
+  const resumePlay = () => {
+    const { roomId } = room;
+    console.log(roomId);
+  }
+
   return (
     <>
       {
         data && (
-          <Header />
+          <>
+            <Header />
+            <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div>
+                  <Typography textAlign={'center'}>
+                    Play a random game for your practice
+                  </Typography>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
+                      Play a game <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Typography textAlign={'center'}>
+                    Play with your friends by creating a room
+                  </Typography>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button sx={{ marginBottom: '40px' }} onClick={() => createRoom()}>
+                      Create a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Typography textAlign={'center'}>
+                    Play with your friends by joining in a room
+                  </Typography>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Button sx={{ marginBottom: '40px' }} onClick={joinRoom}>
+                      Join a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                    </Button>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '10px' }}>
+                  <Typography textAlign={'center'}>
+                    Number of matches played: {data.noOfGamesPlayed}
+                  </Typography>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <Button onClick={() => { navigate('/games') }}>
+                      Click for past matches details <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )
       }
 
       {
-        data === null && (
-          <>Loading....</>
+        room && (
+          <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '10px', marginBottom: '10px', justifyContent: 'center', alignItems: 'center' }}>
+              <Typography textAlign={'center'} sx={{ margin: '5px', fontSize: '8px' }} color={'red'}>
+                You are already present in the room please click below button to resume the play
+              </Typography>
+
+              <Button onClick={resumePlay}>Resume play <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} /></Button>
+            </div>
+          </div>
         )
       }
 
       {
-        data && (
-          <div style={{ display: 'flex', height: 'calc(100vh - 100px)', width: '100vw', justifyContent: 'center', alignItems: 'space' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div>
-                <Typography textAlign={'center'}>
-                  Play a random game for your practice
-                </Typography>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
-                    Play a game <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Typography textAlign={'center'}>
-                  Play with your friends by creating a room
-                </Typography>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={() => createRoom()}>
-                    Create a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Typography textAlign={'center'}>
-                  Play with your friends by joining in a room
-                </Typography>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Button sx={{ marginBottom: '40px' }} onClick={joinRoom}>
-                    Join a room <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
-                  </Button>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', marginTop: '10px' }}>
-                <Typography textAlign={'center'}>
-                  Number of matches played: {data.noOfGamesPlayed}
-                </Typography>
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-                  <Button onClick={() => { navigate('/games') }}>
-                    Click for past matches details <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
-                  </Button>
-                </div>
-              </div>
+        !room && !data && (
+          <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '10px', marginBottom: '10px', justifyContent: 'center', alignItems: 'center' }}>
+              <CircularProgress color="inherit" />
+
+              <Typography textAlign={'center'} sx={{ margin: '5px', fontSize: '8px' }} color={'red'}>
+                ** If still not loaded after much time please re-load the page **
+              </Typography>
             </div>
           </div>
         )

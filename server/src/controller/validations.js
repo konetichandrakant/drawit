@@ -1,5 +1,15 @@
 const globalState = require('../utils/globalState');
 const User = require('../models/User');
+const { PLAYING } = require('../utils/constants');
+
+const getUserDetailsForGame = (listOfUserIds) => {
+  const userDetailsObj = {};
+
+  for (let i = 0; i < listOfUserIds.length; i++)
+    userDetailsObj[listOfUserIds[i]] = { status: PLAYING, totalScore: 0, level: 0 };
+
+  return userDetailsObj;
+}
 
 exports.validGameRoomController = (req, res) => {
   const { roomId } = req.params;
@@ -8,10 +18,32 @@ exports.validGameRoomController = (req, res) => {
   if (!globalState.isRoomPresent(roomId))
     return res.status(404).send({ message: 'There is no such room created!!' });
 
-  if (!(userId in globalState.getRoomDetailsById(roomId)['users']) && !(globalState.getRoomDetailsById(roomId)['owner'] === userId))
+  if (!(globalState.getRoomDetailsById(roomId)['users'].includes(userId)) && !(globalState.getRoomDetailsById(roomId)['owner'] === userId))
     return res.status(401).send({ message: 'You are not authorised to play the game!!' });
 
-  return res.status(200).send(true);
+  if (!globalState.isGameRoomPresent(roomId)) {
+    const listOfUserIds = [...globalState.getRoomDetailsById(roomId)['users'], globalState.getRoomDetailsById(roomId)['owner']];
+
+    globalState.setGameDetailsById(roomId, {
+      roomId: {
+        levels: [],
+        drawings: [],
+        users: getUserDetailsForGame(listOfUserIds)
+      }
+    })
+  }
+
+  return res.status(200).send({ scores: globalState.getGameDetailsById(roomId)['users'], level: getUserGameLevel(userId, roomId) });
+}
+
+const getUserGameLevel = (userId, roomId) => {
+  const userGameDetails = globalState.getGameDetailsById(roomId)['users'];
+
+  for (let id in userGameDetails) {
+    if (id === userId) {
+      return userGameDetails[userId]['level'];
+    }
+  }
 }
 
 exports.validCreatingRoomController = (req, res, next) => {

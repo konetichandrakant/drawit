@@ -1,4 +1,4 @@
-const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA, REMOVED, CREATE_ROOM, START_GAME } = require('../utils/constants');
+const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA, REMOVED, CREATE_ROOM, START_GAME, DELETE_ROOM } = require('../utils/constants');
 const globalState = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
@@ -42,10 +42,7 @@ exports.roomSocket = (io) => {
 
   const joinSocketToRoom = (targetSocketId, roomId) => {
     try {
-      console.log(io);
       const targetSocket = io.sockets.get(targetSocketId);
-
-      console.log(targetSocket);
 
       if (!targetSocket)
         return;
@@ -71,7 +68,7 @@ exports.roomSocket = (io) => {
     })
 
     // After client hits join room button the request is catched here. Here the request is sent only to the owner of the room
-    socket.on(JOIN_ROOM_REQUEST, async (data) => {
+    socket.on(JOIN_ROOM_REQUEST, (data) => {
       const { roomId } = data;
       const { userId } = getUserDetails(socket.handshake.auth.token);
 
@@ -90,7 +87,6 @@ exports.roomSocket = (io) => {
         // sending message to owner of the room
         socket.to(ownerSocketId).emit(JOIN_ROOM_REQUEST, { userId, username: globalState.getUserDetailsById(userId)['username'] });
       }
-      console.log(globalState.getUserDetailsById(userId));
     })
 
     // After accepting the person the request is sent to the server and caught here. Moreover, we should send the admitted person details to all members in the group
@@ -119,7 +115,6 @@ exports.roomSocket = (io) => {
     })
 
     socket.on(DENY_REQUEST, (data) => {
-      console.log(data);
       const { userId } = data;
 
       const deniedUserSocketId = globalState.getUserDetailsById(userId)['socketId'];
@@ -129,9 +124,7 @@ exports.roomSocket = (io) => {
     })
 
     socket.on(REMOVE_USER, (data) => {
-      console.log(data, ' remove user')
       const { userId, roomId } = data;
-      console.log(globalState.getUserDetailsById(userId));
 
       const removingUserSocketId = globalState.getUserDetailsById(userId)['socketId'];
       // Get socket object 
@@ -153,7 +146,6 @@ exports.roomSocket = (io) => {
           break;
         }
       }
-      console.log(globalState.getUserDetailsById(userId));
     })
 
     // come back
@@ -175,9 +167,13 @@ exports.roomSocket = (io) => {
       }
     })
 
+    socket.on(DELETE_ROOM, (data) => {
+      const { roomId } = data;
+      io.to(roomId).emit(DELETE_ROOM);
+    })
+
     socket.on(START_GAME, (data) => {
       const { roomId } = data;
-      console.log(roomId);
       io.to(roomId).emit(START_GAME);
     })
 

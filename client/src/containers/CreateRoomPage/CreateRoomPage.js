@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import io from "socket.io-client";
-import { CREATE_ROOM, ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, EXIT_ROOM, REMOVE_USER, START_GAME } from '../../utils/constants';
+import { CREATE_ROOM, ACCEPTED_JOIN_ROOM, JOIN_ROOM_REQUEST, DENY_REQUEST, EXIT_ROOM, REMOVE_USER, START_GAME, DELETE_ROOM } from '../../utils/constants';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Header from '../../components/Header';
@@ -20,6 +20,7 @@ function CreateRoom() {
   const [isValidUser, setIsValidUser] = useState(null);
   const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
+  const [deleted, setDeleted] = useState(null);
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
@@ -68,6 +69,11 @@ function CreateRoom() {
     socket.on(START_GAME, () => {
       socket.disconnect();
       navigate('/game/' + roomId);
+    })
+
+    socket.on(DELETE_ROOM, () => {
+      socket.disconnect();
+      setDeleted(true);
     })
 
     return () => {
@@ -134,25 +140,13 @@ function CreateRoom() {
       return alert('Room will not be deleted so early');
     }
 
-    axios.delete(API_URL + '/exit-game/' + roomId, {
-      headers: {
-        Authorization: localStorage.getItem('token')
-      }, params: {
-        deleteRoom: true
-      }
-    }).then(() => {
-      socket.disconnect();
-      navigate('/');
-    }).catch(() => {
-      socket.disconnect();
-      navigate('/');
-    })
+    socket.emit(DELETE_ROOM, { roomId });
   }
 
   return (
     <>
       {
-        isValidUser === null && (
+        !deleted && isValidUser === null && (
           <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
               <CircularProgress color="inherit" />
@@ -166,7 +160,7 @@ function CreateRoom() {
       }
 
       {
-        isValidUser && (
+        !deleted && isValidUser && (
           <div>
             <Header roomId={roomId} />
             <div style={{ display: 'flex', height: 'calc(100vh - 100px)', maxWidth: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
@@ -258,13 +252,25 @@ function CreateRoom() {
       }
 
       {
-        isValidUser === false && (
-          <div style={{ display: 'flex', height: '90vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+        !deleted && isValidUser === false && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <Typography textAlign={'center'} color={'red'}>
               ** You are not owner for this room **
             </Typography>
 
             <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
+          </div>
+        )
+      }
+
+      {
+        deleted && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+            <Typography textAlign={'center'} fontWeight={500}>
+              Successfully deleted room please click below button to go to home page
+            </Typography>
+
+            <Button onClick={() => { navigate('/') }}>Navigate to home</Button>
           </div>
         )
       }

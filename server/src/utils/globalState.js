@@ -64,6 +64,10 @@ class Details {
     this.gameDetails[roomId] = data;
   }
 
+  isGameRoomPresent(roomId) {
+    return roomId in this.gameDetails;
+  }
+
   deleteGameDetailsById(roomId) {
     delete this.gameDetails[roomId];
   }

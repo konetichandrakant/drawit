@@ -22,50 +22,6 @@ exports.createRoomController = async (req, res) => {
   return res.status(200).send({ roomId });
 }
 
-exports.exitGameController = (req, res) => {
-  const { gameFinished, deleteRoom } = req.query;
-  const { roomId } = req.params;
-
-  if (deleteRoom) {
-    const roomDetails = globalState.getRoomDetailsById(roomId);
-
-    // Delete socket owner and the delete all members in the room present
-    const ownerId = roomDetails['owner'];
-    globalState.deleteUserByUserId(ownerId);
-
-    for (let userId in roomDetails['users']) {
-      globalState.deleteUserByUserId(userId);
-    }
-
-    globalState.deleteRoomById(roomId);
-
-    return res.status(200).send({ message: 'Saved to DB!!' });
-  } if (gameFinished) {
-    // First save details by room ID
-    saveGameDetailsToDB(roomId);
-
-    const roomDetails = globalState.getRoomDetailsById(roomId);
-
-    // Delete socket owner and the delete all members in the room present
-    const ownerId = roomDetails['owner'];
-    globalState.deleteUserByUserId(ownerId);
-
-    for (let userId in roomDetails['users']) {
-      globalState.deleteUserByUserId(userId);
-    }
-
-    globalState.deleteRoomById(roomId);
-    globalState.deleteGameById(roomId);
-
-    return res.status(200).send({ message: 'Saved to DB!!' });
-  }
-}
-
-// Write logic before saving to DB
-const saveGameDetailsToDB = (roomId) => {
-
-}
-
 exports.gameHistoryController = async (req, res) => {
   const { userId } = req.userDetails;
   const user = await User.findById(userId);

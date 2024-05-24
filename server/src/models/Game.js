@@ -4,24 +4,19 @@ const GameSchema = mongoose.Schema({
     playedDate: {
         type: Date
     },
-    userInformation: [
-        {
-            userId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-            },
-            levelInformation: [
-                {
-                    drawingItem: {
-                        type: String
-                    },
-                    score: {
-                        type: Number
-                    }
-                }
-            ]
+    levelInformation: {
+        type: [{ type: { String: Number } }]
+    },
+    drawingItems: {
+        type: [String]
+    },
+    userInformation: {
+        type: String, // Declare type of object returned
+        virtual: true, // Indicate it's a virtual field
+        get() {
+            // write the specific code here to target specific functions
         }
-    ]
+    }
 })
 
 const Game = mongoose.model('Game', GameSchema);

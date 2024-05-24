@@ -1,4 +1,4 @@
-const { UPDATE_LEADERBOARD, NEXT_LEVEL } = require('../utils/constants');
+const { JOIN_GAME_ROOM, NEXT_LEVEL, UPDATE_LEADERBOARD } = require('../utils/constants');
 const globalState = require('../utils/globalState');
 const drawingItemNamesList = require('../utils/drawingItem');
 const jwt = require('jsonwebtoken');
@@ -30,8 +30,11 @@ const setUserDetailsToSocket = async (token, socketId) => {
 exports.gameSocket = (io) => {
 
   io.on('connection', (socket) => {
+    console.log('socket connected id: ' + socket.id);
 
-    console.log('socket connected with id: ' + socket.id);
+    socket.on(JOIN_GAME_ROOM, () => {
+      setUserDetailsToSocket(socket.handshake.auth.token, socket.id);
+    })
 
     socket.on(NEXT_LEVEL, (data) => {
       const { userId } = getUserDetails(socket.handshake.auth.token);

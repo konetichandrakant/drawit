@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import io from "socket.io-client";
-import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA, EXIT_ROOM, REMOVE_USER, REMOVED, START_GAME } from '../../utils/constants';
+import { ACCEPTED_JOIN_ROOM, DENY_REQUEST, JOIN_ROOM_REQUEST, GET_ALL_DATA, EXIT_ROOM, REMOVE_USER, REMOVED, START_GAME, DELETE_ROOM } from '../../utils/constants';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { CircularProgress } from '@mui/material';
@@ -19,8 +19,7 @@ function JoinRoom() {
   const [socket, setSocket] = useState(null);
   const [isRoomPresent, setIsRoomPresent] = useState(null);
   const [removed, setRemoved] = useState(null);
-
-  console.log(data);
+  const [deletedRoom, setDeletedRoom] = useState(null);
 
   // Before joining into room validate the roomId
   // After validating and adding you in the room by owner send the request to the same page by adding the link roomId
@@ -72,12 +71,18 @@ function JoinRoom() {
       navigate('/game/' + roomId);
     })
 
+    socket.on(DELETE_ROOM, () => {
+      socket.disconnect();
+      setDeletedRoom(true);
+    })
+
     return () => {
       socket.off(JOIN_ROOM_REQUEST);
       socket.off(ACCEPTED_JOIN_ROOM);
       socket.off(START_GAME);
       socket.off(REMOVED);
       socket.off(GET_ALL_DATA);
+      socket.off(DELETE_ROOM);
     }
   }, [socket, navigate, setRemoved, setDenied, setData])
 
@@ -152,7 +157,7 @@ function JoinRoom() {
   return (
     <>
       {
-        data && (
+        !deletedRoom && data && (
           <>
             <Header roomId={roomId} />
             {
@@ -204,7 +209,7 @@ function JoinRoom() {
             }
 
             {
-              denied && (
+              !deletedRoom && denied && (
                 <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 'calc(100vh - 100px)', width: '100vw' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <Typography textAlign={'center'} fontWeight={600}>
@@ -218,7 +223,7 @@ function JoinRoom() {
             }
 
             {
-              isRoomPresent === false && (
+              !deletedRoom && isRoomPresent === false && (
                 <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 'calc(100vh - 100px)', width: '100vw' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <Typography textAlign={'center'} fontWeight={600}>
@@ -232,7 +237,7 @@ function JoinRoom() {
             }
 
             {
-              isValidUser === false && (
+              !deletedRoom && isValidUser === false && (
                 <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 'calc(100vh - 100px)', width: '100vw' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <Typography textAlign={'center'} fontWeight={600}>
@@ -246,15 +251,13 @@ function JoinRoom() {
             }
 
             {
-              removed && (
-                <div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 'calc(100vh - 100px)', width: '100vw' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                    <Typography textAlign={'center'} fontWeight={600}>
-                      You are removed from the room by the owner
-                    </Typography>
+              !deletedRoom && removed && (
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignContent: 'center', height: 'calc(100vh - 100px)', width: '100vw' }}>
+                  <Typography textAlign={'center'} fontWeight={600}>
+                    You are removed from the room by the owner
+                  </Typography>
 
-                    <Button sx={{ color: 'red' }} onClick={() => { navigate('/') }}>Navigate to home</Button>
-                  </div>
+                  <Button sx={{ color: 'red' }} onClick={() => { navigate('/') }}>Navigate to home</Button>
                 </div>
               )
             }
@@ -263,7 +266,19 @@ function JoinRoom() {
       }
 
       {
-        !data && (
+        deletedRoom && (
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignContent: 'center', height: '100vh', width: '100vw' }}>
+            <Typography textAlign={'center'} fontWeight={500}>
+              Admin of this room deleted this room
+            </Typography>
+
+            <Button sx={{ color: 'red' }} onClick={() => { navigate('/') }}>Navigate to home</Button>
+          </div>
+        )
+      }
+
+      {
+        !deletedRoom && !data && (
           <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
               <CircularProgress color="inherit" />
@@ -275,7 +290,6 @@ function JoinRoom() {
           </div>
         )
       }
-
     </>
   )
 }

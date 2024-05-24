@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import io from "socket.io-client";
-import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DrawingArea from '../../components/DrawingArea';
@@ -11,7 +10,7 @@ import { NEXT_LEVEL, UPDATE_LEADERBOARD } from '../../utils/constants';
 import { CircularProgress } from '@mui/material';
 
 const API_URL = process.env.REACT_APP_API_URL;
-let level = 0;
+let gameLevel = 0;
 
 function GamePage() {
   document.title = 'Game';
@@ -29,7 +28,7 @@ function GamePage() {
   // and page should be showing loading icon until score is caculated by API
   // Should remove ml5 from local and make an api call to backend to get score from there for better speed and reduce the bundle size
   const onDrawingSubmit = (score) => {
-    socket.emit(UPDATE_LEADERBOARD, { score, roomId, level });
+    socket.emit(UPDATE_LEADERBOARD, { score, roomId, level: gameLevel });
     setNextLevelLoading(true);
   }
 
@@ -49,24 +48,29 @@ function GamePage() {
     if (!socket) return;
 
     socket.on(NEXT_LEVEL, (response) => {
-      setNextLevelLoading(false);
       const { completed, drawingItem } = response;
       if (completed) {
         setCompleted(true);
       } else {
-        level++;
+        gameLevel++;
         setDrawingItem(drawingItem);
       }
     });
   }, [socket])
 
   useEffect(() => {
+    setNextLevelLoading(false);
+  }, [drawingItem])
+
+  useEffect(() => {
     if (!socket)
       initialLoad();
-    return () => {
-      socket.disconnect();
-    }
   }, [])
+
+  useEffect(() => {
+    if (completed)
+      socket.disconnect();
+  }, [completed])
 
   const initialLoad = () => {
     axios.get(API_URL + '/valid-game-room/' + roomId, {
@@ -75,9 +79,9 @@ function GamePage() {
       }
     }).then((response) => {
       // Get participants data
-      const { scores, userLevel } = response.data;
+      const { scores, level } = response.data;
       setScores(scores);
-      level = userLevel;
+      gameLevel = level;
       setSocket(
         io(process.env.REACT_APP_SOCKET_URL + '/game', {
           auth: {
@@ -89,11 +93,19 @@ function GamePage() {
       if (err.response.status === 401) {
         setError('You are not authorised to play the game!!')
       } else if (err.response.status === 404) {
-        setError('There is no such room created!!');
+        setError('No such room created!!');
       } else {
         setError('Some error occured, please try again!!');
       }
     })
+  }
+
+  const openLeaderBoardHandler = () => {
+    setOpenLeaderBoard(true);
+  }
+
+  const closeLeaderBoardHandler = () => {
+    setOpenLeaderBoard(false);
   }
 
   return (
@@ -104,7 +116,7 @@ function GamePage() {
             {
               openLeaderBoard && (
                 <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <DrawingArea level={level} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} />
+                  <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} />
                   <LeaderBoard scores={scores} />
                 </div>
               )
@@ -112,7 +124,7 @@ function GamePage() {
             {
               !openLeaderBoard && (
                 <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <DrawingArea level={level} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} />
+                  <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} />
                 </div>
               )
             }
@@ -122,32 +134,37 @@ function GamePage() {
 
       {
         nextLevelLoading && (
-          <div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '10px', marginBottom: '10px', justifyContent: 'center', alignItems: 'center' }}>
-              <CircularProgress color="inherit" />
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'space', flexDirection: 'column', marginLeft: '10px', marginRight: '10px' }}>
+            <CircularProgress color="inherit" />
 
-              <Typography textAlign={'center'} sx={{ margin: '10px' }}>
-                Loading please wait.....
-              </Typography>
-
-              <Typography textAlign={'center'} sx={{ margin: '10px', fontSize: '8px' }} color={'red'}>
-                ** If still not loaded after much time please re-load the page **
-              </Typography>
-            </div>
+            <Typography textAlign={'center'} sx={{ margin: '10px', fontSize: '10px' }} color={'red'}>
+              ** If still not loaded after much time please re-load the page **
+            </Typography>
           </div>
         )
       }
 
       {
         error && (
-          <Paper elevation={3} sx={{ p: 3 }} style={{ height: 'auto' }}>
-            <Typography textAlign={'center'} color={'red'}>
-              ** {error} **
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignContent: 'center', height: '100vh', width: '100vw' }}>
+            <Typography textAlign={'center'} fontWeight={500}>
+              {error}
             </Typography>
 
-            <Button onClick={() => { navigate('/join-room') }}>Click here to join other room</Button>
-            <Button onClick={() => { navigate('/') }}>Click here to navigate to home</Button>
-          </Paper>
+            <Button sx={{ color: 'red' }} onClick={() => { navigate('/') }}>Navigate to home</Button>
+          </div>
+        )
+      }
+
+      {
+        completed && (
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignContent: 'center', height: '100vh', width: '100vw' }}>
+            <Typography textAlign={'center'} fontWeight={500}>
+              Game finished, please check your game dashboard after sometime the standings will be displayed there
+            </Typography>
+
+            <Button sx={{ color: 'red' }} onClick={() => { navigate('/') }}>Navigate to home</Button>
+          </div>
         )
       }
 
