@@ -37,12 +37,14 @@ exports.gameSocket = (io) => {
     })
 
     socket.on(NEXT_LEVEL, (data) => {
+      console.log(data);
       const { userId } = getUserDetails(socket.handshake.auth.token);
       const { roomId } = data;
 
       const nextLevelDetails = getNextLevelDrawingItem({ roomId, userId });
+      console.log(globalState.getGameDetailsById(roomId), nextLevelDetails);
 
-      if (nextLevelDetails) {
+      if (!nextLevelDetails) {
         return socket.emit(NEXT_LEVEL, { completed: true });
       } else {
         return socket.emit(NEXT_LEVEL, { drawingItem: nextLevelDetails });
@@ -98,9 +100,13 @@ const getNextLevelDrawingItem = ({ roomId, userId }) => {
       return gameDetails['drawings'][level];
     }
 
+    if (level !== 0 && (userId in gameDetails['levels'][level - 1]) && gameDetails['levels'][level - 1][userId] === 0)
+      return gameDetails['drawings'][level-1];
+
     const generatedDrawingItem = generateRandomDrawing(gameDetails['drawings'].length + 1)
     gameDetails['drawings'].push(generatedDrawingItem);
-    gameDetails['levels'].push({ userId: 0 });
+    gameDetails['levels'].push({});
+    gameDetails['levels'][level][userId] = 0;
     gameDetails['users'][userId]['level']++;
     globalState.setGameDetailsById(roomId, gameDetails);
 
@@ -113,9 +119,9 @@ const getNextLevelDrawingItem = ({ roomId, userId }) => {
 
 const generateRandomDrawing = (level) => {
   if (level == 3) {
-    return drawingItemNamesList[Math.random() * 99 + 100 * (level - 1)];
+    return drawingItemNamesList[Math.floor(Math.random() * 99 + 100 * (level - 1))];
   } else {
-    return drawingItemNamesList[Math.random() * 144 + 100 * (level - 1)];
+    return drawingItemNamesList[Math.floor(Math.random() * 144 + 100 * (level - 1))];
   }
 }
 

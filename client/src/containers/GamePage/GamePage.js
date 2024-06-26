@@ -4,6 +4,7 @@ import axios from 'axios';
 import io from "socket.io-client";
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import DrawingArea from '../../components/DrawingArea';
 import LeaderBoard from '../../components/LeaderBoard';
 import { NEXT_LEVEL, UPDATE_LEADERBOARD } from '../../utils/constants';
@@ -16,6 +17,7 @@ function GamePage() {
   document.title = 'Game';
   const navigate = useNavigate();
   const { roomId } = useParams();
+  const [store, setStore] = useState(null);
   const [error, setError] = useState(null);
   const [openLeaderBoard, setOpenLeaderBoard] = useState(null);
   const [drawingItem, setDrawingItem] = useState(null);
@@ -27,30 +29,34 @@ function GamePage() {
   // When clicked the timer should be stopped 
   // and page should be showing loading icon until score is caculated by API
   // Should remove ml5 from local and make an api call to backend to get score from there for better speed and reduce the bundle size
+
+  const nextLevelDrawing = () => {
+    if (!socket) return;
+
+    socket.emit(NEXT_LEVEL, { roomId });
+  }
+
   const onDrawingSubmit = (score) => {
     socket.emit(UPDATE_LEADERBOARD, { score, roomId, level: gameLevel });
-    setNextLevelLoading(true);
   }
 
   useEffect(() => {
-    if (openLeaderBoard) {
-      socket.on(UPDATE_LEADERBOARD, (response) => {
+    if (!openLeaderBoard) return;
+    socket.on(UPDATE_LEADERBOARD, (response) => {
 
-      })
-    }
-    return () => {
-      if (socket && openLeaderBoard !== null)
-        socket.off(UPDATE_LEADERBOARD);
-    }
+    })
   }, [openLeaderBoard])
 
   useEffect(() => {
     if (!socket) return;
 
+    nextLevelDrawing();
+
     socket.on(NEXT_LEVEL, (response) => {
       const { completed, drawingItem } = response;
       if (completed) {
         setCompleted(true);
+        socket.disconnect();
       } else {
         gameLevel++;
         setDrawingItem(drawingItem);
@@ -59,18 +65,20 @@ function GamePage() {
   }, [socket])
 
   useEffect(() => {
-    setNextLevelLoading(false);
-  }, [drawingItem])
-
-  useEffect(() => {
+    const mid = {
+      canvasWidth: '',
+      canvasHeight: '',
+      LeaderBoardWidth: '',
+      LeaderBoardHeight: ''
+    };
+    mid.canvasHeight = window.innerHeight * (65 / 100);
+    mid.canvasWidth = window.innerWidth * (70 / 100);
+    mid.LeaderBoardWidth = window.innerWidth * (30 / 100);
+    console.log(window.innerHeight, window.innerWidth);
+    setStore(mid);
     if (!socket)
       initialLoad();
   }, [])
-
-  useEffect(() => {
-    if (completed)
-      socket.disconnect();
-  }, [completed])
 
   const initialLoad = () => {
     axios.get(API_URL + '/valid-game-room/' + roomId, {
@@ -108,23 +116,35 @@ function GamePage() {
     setOpenLeaderBoard(false);
   }
 
+  console.log(completed, nextLevelLoading, drawingItem, openLeaderBoard, scores);
+
   return (
     <>
       {
-        !completed && !nextLevelLoading && drawingItem && scores && (
+        !completed && !nextLevelLoading && drawingItem && store && (
           <>
             {
-              openLeaderBoard && (
-                <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} />
-                  <LeaderBoard scores={scores} />
+              openLeaderBoard && scores && (
+                <div style={{ height: 'calc(100vh - 100px)', width: '100vw' }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <Box style={{ width: '55vw' }}>
+                      <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} width={store.canvasWidth} height={store.canvasHeight} />
+                    </Box>
+                    <Box style={{ width: '35vw' }}>
+                      <LeaderBoard width={store.LeaderBoardWidth} scores={scores} />
+                    </Box>
+                  </div>
                 </div>
               )
             }
             {
-              !openLeaderBoard && (
-                <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} />
+              !openLeaderBoard && scores && (
+                <div style={{ height: 'calc(100vh - 100px)', width: '100vw' }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                    <Box style={{ width: '90vw' }}>
+                      <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} width={store.canvasWidth} height={store.canvasHeight} />
+                    </Box>
+                  </div>
                 </div>
               )
             }

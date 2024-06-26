@@ -25,11 +25,9 @@ exports.validGameRoomController = (req, res) => {
     const listOfUserIds = [...globalState.getRoomDetailsById(roomId)['users'], globalState.getRoomDetailsById(roomId)['owner']];
 
     globalState.setGameDetailsById(roomId, {
-      roomId: {
-        levels: [],
-        drawings: [],
-        users: getUserDetailsForGame(listOfUserIds)
-      }
+      levels: [],
+      drawings: [],
+      users: getUserDetailsForGame(listOfUserIds)
     })
   }
 

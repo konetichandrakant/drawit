@@ -1,23 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ReactP5Wrapper } from "react-p5-wrapper";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
+import { useTheme } from '@mui/material';
+import ml5 from "ml5";
 
-let classifier = null;
+let classifier;
 let canvas;
 
-async function loadML5() {
-  const ml5 = await import('ml5');
-  return ml5;
-}
-
-function DoodleClassifier({ drawingItem, level, onDrawingSubmit, width, height }) {
+function DrawingArea({ drawingItem, width, height, onDrawingSubmit, level }) {
+  const theme = useTheme();
+  const [score, setScore] = useState(null);
 
   useEffect(async () => {
-    if (classifier) return;
-    const ml5 = new loadML5();
     classifier = await ml5.imageClassifier("DoodleNet");
   }, []);
 
@@ -44,22 +41,20 @@ function DoodleClassifier({ drawingItem, level, onDrawingSubmit, width, height }
   };
 
   const calculateScore = (results) => {
-    let score = 0;
     for (let index in results) {
       const data = results[index];
       if (data['label'] === drawingItem) {
-        console.log(data['confidence'], results);
-        score = (data['confidence'] + ((results.length - index * 2) / results.length)) * 50;
+        return data['confidence'];
       }
     }
-    return score < 0 ? (score * -1) / 10 : score;
   }
 
   const classifyImage = async () => {
     try {
+      // const trimmedCanvas = canvas.createGraphics(width, height);
       const results = await classifier.classify(canvas, 345);
+      calculateScore(results);
       clearCanvas(canvas);
-      onDrawingSubmit(calculateScore(results));
     } catch (error) {
       console.error("Error during classification:", error);
     }
@@ -86,7 +81,7 @@ function DoodleClassifier({ drawingItem, level, onDrawingSubmit, width, height }
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-evenly',
-          marginBottom: '10px',
+          marginBottom: theme.spacing(1),
           width: width,
         }}
       >
@@ -101,4 +96,4 @@ function DoodleClassifier({ drawingItem, level, onDrawingSubmit, width, height }
   );
 };
 
-export default DoodleClassifier
+export default DrawingArea;
