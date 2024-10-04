@@ -1,8 +1,9 @@
 const validationsService = require('../services/validationsService');
 
-exports.validCreatingRoomController = (req, res) => {
+exports.validCreatingRoomController = (req, res, next) => {
+  console.log(req);
   try {
-    validationsService.validCreatingRoomService(req, res);
+    validationsService.validCreatingRoomService(req, res, next);
   } catch (error) {
     return res.status(500).send({ message: 'Error occured while creating room' });
   }

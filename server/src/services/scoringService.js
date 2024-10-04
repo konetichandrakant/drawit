@@ -42,8 +42,12 @@ const addScoreToGameDetails = (roomId, userId, score) => {
     const gameDetails = globalState.getGameDetailsById(roomId);
     const userGameDetails = gameDetails['users'][userId];
 
-    gameDetails['levels'][userGameDetails['level']].push({ userId: score });
+    gameDetails['levels'][userGameDetails['level'] - 1].push({ userId: score });
 
     userGameDetails['totalScore'] = userGameDetails['totalScore'] + score;
     userGameDetails['level']++;
+
+    gameDetails['users'][userId] = userGameDetails;
+
+    globalState.setRoomDetailsById(gameDetails);
 }

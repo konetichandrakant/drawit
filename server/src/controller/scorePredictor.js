@@ -1,4 +1,4 @@
-const globalState = import('../utils/globalState');
+const globalState = require('../utils/globalState');
 
 exports.scorePredictor = (req, res) => {
     const { userId } = req.userDetails;

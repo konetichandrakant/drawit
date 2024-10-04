@@ -14,7 +14,7 @@ function DrawingArea({ drawingItem, width, height, onDrawingSubmit, level }) {
   const [score, setScore] = useState(null);
 
   useEffect(async () => {
-    classifier = await ml5.imageClassifier("DoodleNet");
+    // classifier = await ml5.imageClassifier("DoodleNet");
   }, []);
 
   const clearCanvas = () => {

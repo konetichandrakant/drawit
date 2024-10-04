@@ -1,6 +1,7 @@
-const gameServices = import('../services/gameService');
+const gameServices = require('../services/gameService');
 
 exports.createRoomController = async (req, res) => {
+  console.log(req);
   try {
     (await gameServices).createRoomService(req, res);
   } catch (error) {

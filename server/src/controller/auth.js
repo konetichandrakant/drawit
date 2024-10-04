@@ -1,6 +1,7 @@
-const authServices = import('../services/authService');
+const authServices = require('../services/authService');
 
 exports.loginController = async (req, res) => {
+  console.log(req.body, "controller");
   try {
     (await authServices).loginService(req, res);
   } catch (error) {

@@ -2,6 +2,8 @@ const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_R
 const globalState = require('../utils/globalState');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const roomService = require('../services/roomService');
+
 require('dotenv').config();
 
 const getUserDetails = (token) => {
@@ -134,18 +136,9 @@ exports.roomSocket = (io) => {
       // Leaving room
       removingUserSocketObject.leave(roomId);
 
-      const roomDetails = globalState.getRoomDetailsById(roomId);
-
       // Remove user details from room details
-      for (let i = 0; i < roomDetails['users'].length; i++) {
-        if (roomDetails['users'][i] === userId) {
-          roomDetails['users'].splice(i, 1);
-          globalState.setRoomDetailsById(roomId, roomDetails);
-          globalState.deleteUserByUserId(userId);
-          io.to(roomId).emit(REMOVE_USER, { userId });
-          break;
-        }
-      }
+      if (roomService.removeUserFromRoom(userId, roomId))
+        io.to(roomId).emit(REMOVE_USER, { userId });
     })
 
     // come back
@@ -153,22 +146,17 @@ exports.roomSocket = (io) => {
       const { roomId } = data;
       const { userId } = getUserDetails(socket.handshake.auth.token);
 
-      const roomDetails = globalState.getRoomDetailsById(roomId);
       socket.leave(roomId);
 
-      for (let i = 0; i < roomDetails['users'].length; i++) {
-        if (roomDetails['users'][i] === userId) {
-          roomDetails['users'].splice(i, 1);
-          globalState.setRoomDetailsById(roomId, roomDetails);
-          globalState.deleteUserByUserId(userId);
-          io.to(roomId).emit(EXIT_ROOM, { userId });
-          break;
-        }
-      }
+      if (roomService.removeUserFromRoom(userId, roomId))
+        io.to(roomId).emit(EXIT_ROOM, { userId });
     })
 
     socket.on(DELETE_ROOM, (data) => {
       const { roomId } = data;
+
+      roomService.removeRoom(roomId)
+
       io.to(roomId).emit(DELETE_ROOM);
     })
 

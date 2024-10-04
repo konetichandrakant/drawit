@@ -21,7 +21,7 @@ function Login() {
   const onSubmit = (e) => {
     if (valid)
       setValid(null);
-    setLoading(true);
+    setLoading((p) => !p);
 
     axios.post(API_URL + '/login', details)
       .then((res) => {
@@ -35,7 +35,7 @@ function Login() {
         return setValid('** Some error occured please try again! **');
       })
 
-    setLoading(false);
+    setLoading((p) => !p);
   }
 
   return (

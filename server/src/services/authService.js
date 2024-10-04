@@ -4,9 +4,11 @@ require("dotenv").config();
 
 exports.loginService = async (req, res) => {
     const { email, password } = req.body;
+    console.log(req.body);
 
     try {
         const user = await User.findOne({ email: email });
+        console.log(user, email);
 
         if (!user || user.password !== password)
             return res.status(200).send({ message: '** Incorrect email or password **' });

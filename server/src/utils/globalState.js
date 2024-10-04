@@ -53,6 +53,13 @@ class Details {
   }
 
   deleteRoomDetailsById(roomId) {
+    const roomDet = this.roomDetails[roomId];
+
+    for (let i = 0; i < roomDet['users'].length; i++)
+      this.deleteUserByUserId(roomDet['users'][i]);
+
+    this.deleteUserByUserId(roomDet['owner']);
+
     delete this.roomDetails[roomId];
   }
 
