@@ -3,9 +3,9 @@ const User = require('../models/User');
 exports.homeController = async (req, res) => {
   const { userId } = req.userDetails;
 
-  const { noOfGamesPlayed } = await User.findById(userId, { noOfGamesPlayed: 1 });
+  const user = await User.findById(userId, { noOfGamesPlayed: 1 });
 
-  return res.status(200).send({ noOfGamesPlayed });
+  return res.status(200).send({ noOfGamesPlayed: user.noOfGamesPlayed });
 }
 
 exports.profileController = async (req, res) => {

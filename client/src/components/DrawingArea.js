@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import { useTheme } from '@mui/material';
-import ml5 from "ml5";
 
 let classifier;
 let canvas;
