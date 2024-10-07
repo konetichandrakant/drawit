@@ -1,83 +1,34 @@
+const User = require('../models/User');
+
 const { JOIN_ROOM_REQUEST, ACCEPTED_JOIN_ROOM, REMOVE_USER, DENY_REQUEST, EXIT_ROOM, GET_ALL_DATA, REMOVED, CREATE_ROOM, START_GAME, DELETE_ROOM } = require('../utils/constants');
 const globalState = require('../utils/globalState');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const roomService = require('../services/roomService');
+const socketUtils = require('../socket/socketUtils');
 
 require('dotenv').config();
 
-const getUserDetails = (token) => {
-  if (!token || !token.startsWith('Bearer ')) {
-    return next(new Error('Invalid token format')); // More specific error message
-  }
-
-  const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
-  return jwt.verify(authToken, process.env.JWT_SECRET_KEY);
-}
-
-const setUserDetailsToSocket = async (token, socketId) => {
-
-  if (!token || !token.startsWith('Bearer ')) {
-    return next(new Error('Invalid token format')); // More specific error message
-  }
-
-  const authToken = token.substring(7); // Assuming token format is "Bearer <token>"
-  const { userId } = jwt.verify(authToken, process.env.JWT_SECRET_KEY);
-  const { username } = await User.findById(userId, { username: 1 });
-
-  globalState.setUserDetailsById(userId, { username, socketId });
-}
-
-const userPresentInRoom = (roomId, userId) => {
-  const roomDetails = globalState.getRoomDetailsById(roomId);
-
-  for (let i = 0; i < roomDetails['users'].length; i++) {
-    if (roomDetails['users'][i] === userId) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 exports.roomSocket = (io) => {
-
-  const joinSocketToRoom = (targetSocketId, roomId) => {
-    try {
-      const targetSocket = io.sockets.get(targetSocketId);
-
-      if (!targetSocket)
-        return;
-
-      targetSocket.join(roomId);
-    } catch (err) {
-      console.error('Error joining socket to room:', err);
-    }
-  }
-
-  const getUserDetailsListFromUserIdsList = (userIdsList) => {
-    return userIdsList.map((userId) => { return { userId, username: globalState.getUserDetailsById(userId)['username'] } });
-  }
 
   io.on('connection', (socket) => {
     console.log('socket connected id: ' + socket.id);
 
-    setUserDetailsToSocket(socket.handshake.auth.token, socket.id);
+    socketUtils.setUserDetailsToSocket(socket.handshake.auth.token, socket.id);
 
     socket.on(CREATE_ROOM, (data) => {
       const { roomId } = data;
+      console.log('Join room');
       socket.join(roomId);
     })
 
     // After client hits join room button the request is catched here. Here the request is sent only to the owner of the room
     socket.on(JOIN_ROOM_REQUEST, (data) => {
       const { roomId } = data;
-      const { userId } = getUserDetails(socket.handshake.auth.token);
+      const { userId } = socketUtils.getUserDetails(socket.handshake.auth.token);
 
-      if (userPresentInRoom(roomId)) {
+      if (socketUtils.userPresentInRoom(roomId)) {
         socket.to(globalState.getUserDetailsById(userId)['socketId']).emit(GET_ALL_DATA, {
           owner: globalState.getUserDetailsById(roomDetails['owner'])['username'],
-          others: getUserDetailsListFromUserIdsList(roomDetails['users'])
+          others: socketUtils.getUserDetailsListFromUserIdsList(roomDetails['users'])
         });
       } else {
         const roomDetails = globalState.getRoomDetailsById(roomId);
@@ -106,14 +57,14 @@ exports.roomSocket = (io) => {
       // Optimised to send all user details to only acceptedUsers
       socket.to(acceptedUserSocketId).emit(GET_ALL_DATA, {
         owner: globalState.getUserDetailsById(roomDetails['owner'])['username'],
-        others: getUserDetailsListFromUserIdsList(roomDetails['users'])
+        others: socketUtils.getUserDetailsListFromUserIdsList(roomDetails['users'])
       });
 
       // Send accepted user to all members in the room
       io.to(roomId).emit(ACCEPTED_JOIN_ROOM, { username: globalState.getUserDetailsById(userId)['username'], userId });
 
       // Join into room
-      joinSocketToRoom(acceptedUserSocketId, roomId);
+      socketUtils.addUserToRoom(acceptedUserSocketId, io, roomId);
     })
 
     socket.on(DENY_REQUEST, (data) => {
@@ -143,21 +94,23 @@ exports.roomSocket = (io) => {
 
     // come back
     socket.on(EXIT_ROOM, (data) => {
+      console.log(data);
       const { roomId } = data;
-      const { userId } = getUserDetails(socket.handshake.auth.token);
+      const { userId } = socketUtils.getUserDetails(socket.handshake.auth.token);
 
-      socket.leave(roomId);
+      socket.disconnect();
 
-      if (roomService.removeUserFromRoom(userId, roomId))
-        io.to(roomId).emit(EXIT_ROOM, { userId });
+      roomService.removeUserFromRoom(userId, roomId);
+
+      io.to(roomId).emit(EXIT_ROOM, { userId });
     })
 
     socket.on(DELETE_ROOM, (data) => {
       const { roomId } = data;
 
-      roomService.removeRoom(roomId)
-
       io.to(roomId).emit(DELETE_ROOM);
+
+      roomService.removeRoom(roomId);
     })
 
     socket.on(START_GAME, (data) => {

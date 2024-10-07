@@ -23,11 +23,14 @@ exports.removeUserFromRoom = (userId, roomId) => {
             }
         }
     }
+
+    // This block will execute if we cannot find user in room
+    globalState.deleteUserByUserId(userId);
 }
 
 exports.removeRoom = (roomId) => {
     // delete users of the room
-    
+
     globalState.deleteRoomDetailsById(roomId);
 }
 

@@ -54,16 +54,26 @@ function CreateRoom() {
     })
 
     socket.on(EXIT_ROOM, (response) => {
-      if (!acceptedUsers || acceptedUsers.length === 0) return;
-
-      for (let i = 0; i < acceptedUsers.length; i++) {
-        if (acceptedUsers[i]['userId'] === response['userId']) {
-          let accUsers = [...acceptedUsers];
-          accUsers.splice(i, 1);
-          setAcceptedUsers(accUsers);
-          break;
+      console.log(response);
+      if (acceptedUsers)
+        for (let i = 0; i < acceptedUsers.length; i++) {
+          if (acceptedUsers[i]['userId'] === response['userId']) {
+            let accUsers = [...acceptedUsers];
+            accUsers.splice(i, 1);
+            setAcceptedUsers(accUsers);
+            break;
+          }
         }
-      }
+
+      if (requestingUsers)
+        for (let i = 0; i < requestingUsers.length; i++) {
+          if (requestingUsers[i]['userId'] === response['userId']) {
+            let reqUsers = [...requestingUsers];
+            reqUsers.splice(i, 1);
+            setRequestingUsers(reqUsers);
+            break;
+          }
+        }
     })
 
     socket.on(START_GAME, () => {

@@ -105,6 +105,7 @@ function JoinRoom() {
 
     socket.on(EXIT_ROOM, (response) => {
       const { userId } = response;
+      console.log(response);
       const others = [...data.others];
 
       for (let i = 0; i < others.length; i++) {
@@ -150,7 +151,6 @@ function JoinRoom() {
 
   const exitRoom = (navigateTo) => {
     socket.emit(EXIT_ROOM, { roomId });
-    socket.disconnect();
     navigate(navigateTo);
   }
 
