@@ -18,13 +18,14 @@
 
 // exports.roomDetails = {
 //   roomId: {
-//     users: [ userId ]
-//     owner: userId
+//     userApprovedConnections: [ userId ],
+//     owner: userId,
+//     userRequestingConnections: [ userId ]
 //   }
 // }
 
 // exports.userDetails = {
-//   userId: socketId, username, roomId
+//   userId: socketId, username, roomId, approved
 // }
 
 class Details {
@@ -53,13 +54,6 @@ class Details {
   }
 
   deleteRoomDetailsById(roomId) {
-    const roomDet = this.roomDetails[roomId];
-
-    for (let i = 0; i < roomDet['users'].length; i++)
-      this.deleteUserByUserId(roomDet['users'][i]);
-
-    this.deleteUserByUserId(roomDet['owner']);
-
     delete this.roomDetails[roomId];
   }
 

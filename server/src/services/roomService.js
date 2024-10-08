@@ -19,7 +19,6 @@ exports.removeUserFromRoom = (userId, roomId) => {
                 roomDetails['users'].splice(i, 1);
                 globalState.setRoomDetailsById(roomId, roomDetails);
                 globalState.deleteUserByUserId(userId);
-                return true;
             }
         }
     }
