@@ -5,8 +5,8 @@ import io from "socket.io-client";
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import DrawingArea from '../../components/DrawingArea';
-import LeaderBoard from '../../components/LeaderBoard';
+import DrawingArea from '../../components/Canvas/DrawingArea';
+import LeaderBoard from '../../components/LeaderBoard/LeaderBoard';
 import { NEXT_LEVEL, UPDATE_LEADERBOARD } from '../../utils/constants';
 import { CircularProgress } from '@mui/material';
 

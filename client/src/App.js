@@ -4,7 +4,8 @@ import Home from './containers/HomePage/HomePage';
 import Login from './containers/LoginPage/LoginPage';
 import Register from './containers/RegisterPage/RegisterPage';
 import Profile from './containers/ProfilePage/ProfilePage';
-import Game from './containers/GamePage/GamePage';
+import PracticeDrawing from './containers/PracticeDrawing/PracticeDrawing';
+import GamePage from './containers/GamePage/GamePage';
 import GameHistory from './containers/GameHistoryPage/GameHistoryPage';
 import CreateRoom from './containers/CreateRoomPage/CreateRoomPage';
 import JoinRoomInput from './containers/JoinRoomPage/JoinRoomInput';
@@ -20,10 +21,11 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/games" element={<GameHistory />} />
+        <Route path="/practice-drawing" element={<PracticeDrawing />} />
         <Route path="/create-room/:roomId" element={<CreateRoom />} />
         <Route path="/join-room" element={<JoinRoomInput />} />
         <Route path="/join-room/:roomId" element={<JoinRoom />} />
-        <Route path="/game/:roomId" element={<Game />} />
+        <Route path="/game/:roomId" element={<GamePage />} />
       </Routes>
     </Router>
   );

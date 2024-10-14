@@ -84,11 +84,11 @@ function Home() {
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div>
                   <Typography textAlign={'center'}>
-                    Play a random game for your practice
+                    Get random drawings for your practice
                   </Typography>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <Button sx={{ marginBottom: '40px' }} onClick={() => navigate('/game')}>
-                      Play a game <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                      Practice drawing <ArrowForwardIosOutlinedIcon sx={{ width: '20px', height: '20px' }} />
                     </Button>
                   </div>
                 </div>
