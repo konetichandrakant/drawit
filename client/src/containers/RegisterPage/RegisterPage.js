@@ -18,6 +18,7 @@ function Register() {
   const [valid, setValid] = useState(null);
 
   const onSubmit = () => {
+    console.log(API_URL);
     if (details.password !== details.confirmPassword)
       return setValid('** password and confirm password are not same **');
     setValid('Loading...');

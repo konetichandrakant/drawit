@@ -11,7 +11,7 @@ exports.homeController = async (req, res) => {
 exports.profileController = async (req, res) => {
   const { userId } = req.userDetails;
 
-  const user = await User.findById(userId, { username: 1, gameIds: 1 });
+  const user = await User.findById(userId, { username: 1, gameIds: 1, email: 1 });
 
-  return res.status(200).send({ username: user.username, noOfGamesPlayed: user.gameIds.length });
+  return res.status(200).send({ username: user.username, noOfGamesPlayed: user.gameIds.length, email: user.email });
 }
