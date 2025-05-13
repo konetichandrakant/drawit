@@ -4,6 +4,8 @@ import Button from '@mui/material/Button';
 import drawitLogo from '../images/drawit_logo.png';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 
+const CLIENT_URL = process.env.REACT_APP_CLIENT_URL;
+
 function Header({ profile, roomId }) {
   const navigate = useNavigate();
 
@@ -34,7 +36,7 @@ function Header({ profile, roomId }) {
           <div style={{ display: 'flex', height: '50px', margin: '10px', justifyContent: 'space-between' }}>
             <img src={drawitLogo} />
             <div style={{ display: 'flex', height: '50px', justifyContent: 'right', alignItems: 'center' }}>
-              <Button style={{ cursor: 'pointer' }} onClick={() => { navigator.clipboard.writeText('Join room to play with us!! ROOM ID to join is ' + roomId + ' and http://localhost:3000/join-room is the link to join') }}>
+              <Button style={{ cursor: 'pointer' }} onClick={() => { navigator.clipboard.writeText('Join the room and play with us! Use this link to join: ' + CLIENT_URL + "/join-room/" + roomId) }}>
                 Invite to room
               </Button>
             </div>
