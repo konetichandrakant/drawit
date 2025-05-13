@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { logOutService } from '../../api/auth';
 import Header from '../../components/Header';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -68,6 +69,9 @@ const Profile = () => {
                 <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                   <Button onClick={() => { navigate('/games') }}>
                     Click for past matches details <ArrowForwardOutlinedIcon sx={{ width: '20px', height: '20px' }} />
+                  </Button>
+                  <Button onClick={() => { logOutService ()}}>
+                    LOGOUT
                   </Button>
                 </div>
               </div>
