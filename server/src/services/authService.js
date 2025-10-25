@@ -42,3 +42,18 @@ exports.registerService = async (req, res) => {
         return res.status(500).send({ message: 'Error while registering' });
     }
 }
+
+exports.logoutService = async (req, res) => {
+    try {
+        // const token = req.headers.authorization.split(' ')[1];
+        // if (!token) return res.status(200).send({ message: 'No token provided' });
+
+        // jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
+        //     if (err) return res.status(200).send({ message: 'Invalid token' });
+        //     return res.status(200).send({ message: 'Logged out successfully' });
+        // });
+        return res.status(200).send({ message: 'Logged out successfully' });
+    } catch (err) {
+        return res.status(500).send({ message: 'Error while logging out' });
+    }
+}
