@@ -292,7 +292,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - **Issues**: [GitHub Issues](https://github.com/konetichandrakant/drawit/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/konetichandrakant/drawit/discussions)
-- **Author**: [Chandrakant Kone](https://github.com/konetichandrakant)
+- **Author**: [Chandrakant Koneti](https://github.com/konetichandrakant)
 
 ---
 
