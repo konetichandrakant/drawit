@@ -19,10 +19,10 @@ DrawIt is a multiplayer drawing game where users compete by drawing on canvas ba
 - **Progressive Difficulty**: Multiple levels with increasing complexity
 
 ### 🤖 **Machine Learning Scoring**
-- **TensorFlow.js Integration**: Advanced drawing evaluation using ML models
-- **Backend Processing**: ML computation moved to server for optimal performance
-- **Smart Scoring**: Accuracy and speed-based evaluation algorithms
-- **Reduced Bundle Size**: Client-side optimization through ML offloading
+- **DoodleNet Classifier**: Drawings are evaluated by ml5's built-in DoodleNet sketch classifier
+- **Client-Side Evaluation**: Classification runs in the browser via ml5/TensorFlow.js; the model's confidence for the target prompt becomes the score (0-100)
+- **345 Quick, Draw! Categories**: Prompts and labels share the same category list, so classification maps directly to scoring
+- **Shared Scorer**: The same classifier powers both solo practice and multiplayer modes
 
 ### 👤 **User Features**
 - **JWT Authentication**: Secure user registration and login system
@@ -46,14 +46,13 @@ DrawIt is a multiplayer drawing game where users compete by drawing on canvas ba
 - **Socket.io Client 4.7.5** - Real-time bidirectional communication
 - **Axios 1.6.8** - Promise-based HTTP client for API calls
 - **Emotion** - CSS-in-JS styling solution for component-level styles
+- **ml5 0.12.2** - DoodleNet sketch classifier for in-browser drawing evaluation
 
 ### Backend (Server)
 - **Node.js with Express.js 4.21.0** - Web framework and API server
 - **MongoDB with Mongoose 8.2.3** - NoSQL database and ODM
 - **Socket.io 4.7.5** - Real-time socket communication and event handling
 - **JWT 9.0.2** - JSON Web Token authentication and authorization
-- **TensorFlow.js Node 4.21.0** - Machine learning for drawing evaluation
-- **ml5 0.12.2** - User-friendly ML library built on TensorFlow.js
 - **Multer 1.4.5** - File upload handling for potential drawing exports
 - **CORS 2.8.5** - Cross-origin resource sharing configuration
 
@@ -199,7 +198,7 @@ npm run prod
 3. **Invite Players**: Share the room ID with friends or wait for join requests
 4. **Start Game**: Once players have joined, the room owner can start the game
 5. **Draw**: All players receive the same prompt and draw on their canvas
-6. **Score**: ML models evaluate your drawing accuracy and speed
+6. **Score**: The DoodleNet model rates how recognisably you drew the prompt
 7. **Compete**: Watch the live leaderboard and see who wins!
 8. **Practice**: Use practice mode to improve your drawing skills
 
