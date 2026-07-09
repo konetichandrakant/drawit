@@ -8,6 +8,7 @@ import Box from '@mui/material/Box';
 import DrawingArea from '../../components/Canvas/DrawingArea';
 import LeaderBoard from '../../components/LeaderBoard/LeaderBoard';
 import { NEXT_LEVEL, UPDATE_LEADERBOARD } from '../../utils/constants';
+import { classifyDrawing, scoreDrawing } from '../../utils/doodleClassifier';
 import { CircularProgress } from '@mui/material';
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -25,10 +26,12 @@ function GamePage() {
   const [scores, setScores] = useState(null);
   const [nextLevelLoading, setNextLevelLoading] = useState(false);
   const [completed, setCompleted] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // When clicked the timer should be stopped 
   // and page should be showing loading icon until score is caculated by API
-  // Should remove ml5 from local and make an api call to backend to get score from there for better speed and reduce the bundle size
+  // Scoring runs in-browser via DoodleNet (see utils/doodleClassifier); the
+  // resulting score is emitted to the server over the socket.
 
   const nextLevelDrawing = () => {
     if (!socket) return;
@@ -36,8 +39,20 @@ function GamePage() {
     socket.emit(NEXT_LEVEL, { roomId });
   }
 
-  const onDrawingSubmit = (score) => {
-    socket.emit(UPDATE_LEADERBOARD, { score, roomId, level: gameLevel });
+  // Classify the submitted canvas with DoodleNet and emit the resulting score
+  // so the server can update the room's leaderboard.
+  const onDrawingSubmit = async (canvasEl) => {
+    if (!socket) return;
+    setSubmitting(true);
+    try {
+      const results = await classifyDrawing(canvasEl);
+      const score = scoreDrawing(results, drawingItem);
+      socket.emit(UPDATE_LEADERBOARD, { score, roomId, level: gameLevel });
+    } catch (err) {
+      console.error('Scoring failed', err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   useEffect(() => {
@@ -128,7 +143,7 @@ function GamePage() {
                 <div style={{ height: 'calc(100vh - 100px)', width: '100vw' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                     <Box style={{ width: '55vw' }}>
-                      <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} width={store.canvasWidth} height={store.canvasHeight} />
+                      <DrawingArea level={gameLevel} drawingItem={drawingItem} onSubmit={onDrawingSubmit} submitting={submitting} width={store.canvasWidth} height={store.canvasHeight} />
                     </Box>
                     <Box style={{ width: '35vw' }}>
                       <LeaderBoard width={store.LeaderBoardWidth} scores={scores} />
@@ -142,7 +157,7 @@ function GamePage() {
                 <div style={{ height: 'calc(100vh - 100px)', width: '100vw' }}>
                   <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
                     <Box style={{ width: '90vw' }}>
-                      <DrawingArea level={gameLevel} drawingItem={drawingItem} onDrawingSubmit={onDrawingSubmit} width={store.canvasWidth} height={store.canvasHeight} />
+                      <DrawingArea level={gameLevel} drawingItem={drawingItem} onSubmit={onDrawingSubmit} submitting={submitting} width={store.canvasWidth} height={store.canvasHeight} />
                     </Box>
                   </div>
                 </div>
