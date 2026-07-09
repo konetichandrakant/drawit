@@ -55,12 +55,17 @@ function GamePage() {
     }
   }
 
+  // Keep the local scores in sync with the room-wide leaderboard broadcast.
   useEffect(() => {
-    if (!openLeaderBoard) return;
-    socket.on(UPDATE_LEADERBOARD, (response) => {
-
-    })
-  }, [openLeaderBoard])
+    if (!socket) return;
+    const handler = (response) => {
+      if (response && response.scores) {
+        setScores(response.scores);
+      }
+    };
+    socket.on(UPDATE_LEADERBOARD, handler);
+    return () => socket.off(UPDATE_LEADERBOARD, handler);
+  }, [socket])
 
   useEffect(() => {
     if (!socket) return;
