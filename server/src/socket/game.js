@@ -55,11 +55,26 @@ exports.gameSocket = (io) => {
       const { userId } = getUserDetails(socket.handshake.auth.token);
       const { roomId, score, level } = data;
 
-      const gameDetails = globalState.getRoomDetailsById(roomId);
-      gameDetails['levels'][level][userId] = score;
+      // Game sockets connect to the /game namespace and never joined the room
+      // during setup, so join now (idempotent) so leaderboard broadcasts reach
+      // every player in the room.
+      socket.join(roomId);
+
+      const gameDetails = globalState.getGameDetailsById(roomId);
+      if (!gameDetails) return;
+
+      // Record the score for this level and add it to the running total.
+      if (!gameDetails.levels[level]) gameDetails.levels[level] = {};
+      gameDetails.levels[level][userId] = score;
+
+      if (gameDetails.users && gameDetails.users[userId]) {
+        gameDetails.users[userId].totalScore =
+          (gameDetails.users[userId].totalScore || 0) + score;
+      }
+
       globalState.setGameDetailsById(roomId, gameDetails);
 
-      io.to(roomId).emit(UPDATE_LEADERBOARD, { userId, score });
+      io.to(roomId).emit(UPDATE_LEADERBOARD, { scores: gameDetails.users });
     })
 
     socket.on('disconnect', () => {

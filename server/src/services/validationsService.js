@@ -5,8 +5,16 @@ const { PLAYING } = require('../utils/constants');
 const getUserDetailsForGame = (listOfUserIds) => {
   const userDetailsObj = {};
 
-  for (let i = 0; i < listOfUserIds.length; i++)
-    userDetailsObj[listOfUserIds[i]] = { status: PLAYING, totalScore: 0, level: 0 };
+  for (let i = 0; i < listOfUserIds.length; i++) {
+    const id = listOfUserIds[i];
+    const stored = globalState.getUserDetailsById(id);
+    userDetailsObj[id] = {
+      username: (stored && stored.username) || "Player",
+      status: PLAYING,
+      totalScore: 0,
+      level: 0
+    };
+  }
 
   return userDetailsObj;
 }
@@ -22,7 +30,7 @@ exports.validGameRoomService = (req, res) => {
     return res.status(401).send({ message: 'You are not authorised to play the game!!' });
 
   if (!globalState.isGameRoomPresent(roomId)) {
-    const listOfUserIds = [...globalState.getRoomDetailsById(roomId)['userApprovedConnections'], globalState.getRoomDetailsById(roomId)['owner']];
+    const listOfUserIds = [...globalState.getRoomDetailsById(roomId)['users'], globalState.getRoomDetailsById(roomId)['owner']];
 
     globalState.setGameDetailsById(roomId, {
       levels: [],
@@ -31,11 +39,11 @@ exports.validGameRoomService = (req, res) => {
     })
   }
 
-  return res.status(200).send({ scores: globalState.getGameDetailsById(roomId)['userApprovedConnections'], level: getUserGameLevel(userId, roomId) });
+  return res.status(200).send({ scores: globalState.getGameDetailsById(roomId)['users'], level: getUserGameLevel(userId, roomId) });
 }
 
 const getUserGameLevel = (userId, roomId) => {
-  const userGameDetails = globalState.getGameDetailsById(roomId)['userApprovedConnections'];
+  const userGameDetails = globalState.getGameDetailsById(roomId)['users'];
 
   for (let id in userGameDetails) {
     if (id === userId) {
